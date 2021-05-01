@@ -1,0 +1,54 @@
+app: aws-node-rest-api-typescript
+service: aws-node-rest-api-typescript
+
+custom:
+  environment:
+    ORIGIN:
+      prod: https://gitscope.vercel.app
+      dev: http://localhost:4000
+
+provider:
+  name: aws
+  stage: dev
+  runtime: nodejs12.x
+  environment:
+    NODE_ENV: ${opt:stage, self:provider.stage}
+    GITHUB_CLIENT_ID: ${ssm:/gitscope/${self:provider.stage}/githubClientId}
+    GITHUB_CLIENT_SECRET: ${ssm:/gitscope/${self:provider.stage}/githubClientSecret}
+    ORIGIN: ${self:custom.environment.ORIGIN.${self:provider.stage}}
+
+plugins:
+  - serverless-plugin-typescript
+  - serverless-offline
+
+functions:
+  main:
+    handler: app/handler.main
+    events:
+      - http:
+          path: /auth/github/callback
+          method: get
+          cors:
+            origin: https://gitscope.vercel.app
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+  repos:
+    handler: app/reposHandler.main
+    events:
+      - http:
+          path: /repos
+          method: get
+          cors:
+            origin: https://gitscope.vercel.app
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
