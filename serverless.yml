@@ -1,5 +1,5 @@
-app: aws-node-rest-api-typescript
-service: aws-node-rest-api-typescript
+app: gitscope-backend
+service: gitscope-backend
 
 custom:
   environment:
@@ -9,13 +9,13 @@ custom:
 
 provider:
   name: aws
-  stage: dev
   runtime: nodejs12.x
+  region: us-east-1 # ap-northeast-1
   environment:
-    NODE_ENV: ${opt:stage, self:provider.stage}
-    GITHUB_CLIENT_ID: ${ssm:/gitscope/${self:provider.stage}/githubClientId}
-    GITHUB_CLIENT_SECRET: ${ssm:/gitscope/${self:provider.stage}/githubClientSecret}
-    ORIGIN: ${self:custom.environment.ORIGIN.${self:provider.stage}}
+    NODE_ENV: ${opt:stage}
+    GITHUB_CLIENT_ID: ${ssm:/gitscope/${opt:stage}/githubClientId}
+    GITHUB_CLIENT_SECRET: ${ssm:/gitscope/${opt:stage}/githubClientSecret}
+    ORIGIN: ${self:custom.environment.ORIGIN.${opt:stage}}
 
 plugins:
   - serverless-plugin-typescript
@@ -23,13 +23,13 @@ plugins:
 
 functions:
   main:
-    handler: app/handler.main
+    handler: app/handler/authHandler.main
     events:
       - http:
           path: /auth/github/callback
           method: get
           cors:
-            origin: https://gitscope.vercel.app
+            origin: ${self:custom.environment.ORIGIN.${opt:stage}}
             headers:
               - Content-Type
               - X-Amz-Date
@@ -38,13 +38,13 @@ functions:
               - X-Amz-Security-Token
               - X-Amz-User-Agent
   repos:
-    handler: app/reposHandler.main
+    handler: app/handler/reposHandler.main
     events:
       - http:
           path: /repos
           method: get
           cors:
-            origin: https://gitscope.vercel.app
+            origin: ${self:custom.environment.ORIGIN.${opt:stage}}
             headers:
               - Content-Type
               - X-Amz-Date

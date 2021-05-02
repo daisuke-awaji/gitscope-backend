@@ -1,5 +1,5 @@
 import { GraphQLClient, gql } from "graphql-request";
-import { PullRequest } from "./PullRequest";
+import { PullRequest } from "../model/PullRequest";
 import { parseISO } from "date-fns";
 
 type User = {
@@ -82,7 +82,7 @@ export class GitHubClient {
     const result = await this.graphQLClient.request<{
       viewer: { repositories: { nodes: Repository[] } };
     }>(query);
-    console.log(result);
+
     return result.viewer.repositories.nodes;
   }
 

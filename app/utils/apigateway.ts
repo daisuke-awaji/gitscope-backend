@@ -1,10 +1,13 @@
-export const formatJSONResponse = (response: Record<string, unknown>) => {
+export const formatJSONResponse = (
+  statusCode: number,
+  body: Record<string, unknown>
+) => {
   return {
-    statusCode: 200,
+    statusCode,
     headers: {
       "Access-Control-Allow-Origin": process.env.ORIGIN,
       "Access-Control-Allow-Credentials": "true",
     },
-    body: JSON.stringify(response),
+    body: JSON.stringify(body),
   };
 };
