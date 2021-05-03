@@ -1,8 +1,8 @@
-import { APIGatewayProxyEvent } from "aws-lambda";
-import RepositoryService from "../services/repo.service";
-import { formatJSONResponse } from "../utils/apigateway";
-import { parseBearerToken } from "../utils/auth";
-import { handleError } from "../utils/middleware";
+import { APIGatewayProxyEvent } from 'aws-lambda';
+import RepositoryService from '../services/RepositoryService';
+import { formatJSONResponse } from '../utils/apigateway';
+import { parseBearerToken } from '../utils/auth';
+import { handleError } from '../utils/middleware';
 
 const repos = async (event: APIGatewayProxyEvent): Promise<any> => {
   const token = parseBearerToken(event);

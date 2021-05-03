@@ -1,5 +1,5 @@
-import * as querystring from "querystring";
-import axios from "axios";
+import * as querystring from 'querystring';
+import axios from 'axios';
 
 type TokenResponse = {
   access_token: string;
@@ -10,20 +10,19 @@ type TokenResponse = {
 class GitHubAuthService {
   async getAccessToken(code: string): Promise<string> {
     const param = {
+      code,
       client_id: process.env.GITHUB_CLIENT_ID,
       client_secret: process.env.GITHUB_CLIENT_SECRET,
-      code,
     };
-    console.log(param);
 
-    const GITHUB_TOKEN_ENDPOINT = "https://github.com/login/oauth/access_token";
+    const GITHUB_TOKEN_ENDPOINT = 'https://github.com/login/oauth/access_token';
 
     const res = await axios.post<TokenResponse>(
-      GITHUB_TOKEN_ENDPOINT + "?" + querystring.stringify(param),
+      `${GITHUB_TOKEN_ENDPOINT}?${querystring.stringify(param)}`,
       {},
       {
         headers: {
-          accept: "application/json",
+          accept: 'application/json',
         },
       }
     );
