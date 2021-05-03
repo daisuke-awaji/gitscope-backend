@@ -1,6 +1,6 @@
 import { createGraphQLClient, GitHubClient } from './github';
 import { formatJSONResponse } from '../utils/apigateway';
-import { format } from 'date-fns';
+import { add, format } from 'date-fns';
 
 type MergedPullRequestPerDay = {
   mergedAt: string; // YYYY-MM-DD
@@ -30,19 +30,23 @@ class PullRequestService {
       });
 
       const count: { [day: string]: number } = result
-        .map((pr) => format(new Date(pr.mergedAt), 'yyyy/MM/dd'))
+        .map((pr) => format(new Date(pr.mergedAt), 'yyyy-MM-dd'))
         .reduce((prev, current) => {
           prev[current] = (prev[current] || 0) + 1;
           return prev;
         }, {});
 
+      let counter = new Date(startDateString);
       const prPerDays: MergedPullRequestPerDay[] = [];
-      Object.keys(count).map((key) => {
-        prPerDays.push({
-          mergedAt: key,
-          count: count[key],
-        });
-      });
+      while (counter < new Date(endDateString)) {
+        const oneDay = format(counter, 'yyyy-MM-dd');
+        if (count.hasOwnProperty(oneDay)) {
+          prPerDays.push({ mergedAt: oneDay, count: count[oneDay] });
+        } else {
+          prPerDays.push({ mergedAt: oneDay, count: 0 });
+        }
+        counter = add(counter, { days: 1 });
+      }
       return prPerDays;
     } catch (e) {
       console.log(e);
