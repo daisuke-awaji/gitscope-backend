@@ -80,6 +80,19 @@ export class GitHubClient {
     return result.viewer.organizations.nodes;
   }
 
+  async fetchRepositoriesRelatedToMe(): Promise<Repository[]> {
+    const orgs = await this.fetchOrganizations();
+
+    const promises = [];
+    for (const org of orgs) {
+      promises.push(this.fetchRepositories({ login: org.login }));
+    }
+    promises.push(this.fetchOwnRepositories());
+    const result: Repository[][] = await Promise.all(promises);
+
+    return result.flat();
+  }
+
   async fetchOwnRepositories(): Promise<Repository[]> {
     const query = gql`
       query($after: String) {
@@ -101,7 +114,6 @@ export class GitHubClient {
         }
       }
     `;
-
     let after: string | undefined;
     let repos: Repository[] = [];
     while (true) {
@@ -111,12 +123,9 @@ export class GitHubClient {
           (repo) => new Repository(repo.nameWithOwner, repo.url),
         ),
       );
-
       if (!data.viewer.repositories.pageInfo.hasNextPage) break;
-
       after = data.viewer.repositories.pageInfo.endCursor;
     }
-
     return repos;
   }
 
@@ -146,6 +155,7 @@ export class GitHubClient {
     let repos: Repository[] = [];
     while (true) {
       const data = await this.graphQLClient.request(query, { after, login });
+      console.log(data);
       repos = repos.concat(
         data.organization.repositories.nodes.map(
           (repo) => new Repository(repo.nameWithOwner, repo.url),

@@ -81,3 +81,15 @@ test('handler', async (done) => {
   console.log(result);
   done();
 });
+
+test.only('public repository', async (done) => {
+  const token = process.env.TEST_TOKEN;
+  const service = new PullRequestService(token);
+  const result = await service.getMergedPullRequestPerDay({
+    repositoryNameWithOwner: 'facebook/react',
+    startDateString: '2021-01-11',
+    endDateString: '2021-04-11',
+  });
+  console.log(result);
+  done();
+});

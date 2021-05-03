@@ -11,7 +11,7 @@ class RepositoryService {
     try {
       const gqlClient = createGraphQLClient(token);
       const client = new GitHubClient(gqlClient);
-      const result = await client.fetchOwnRepositories();
+      const result = await client.fetchRepositoriesRelatedToMe();
       return result.map((repo) => ({ followed: false, ...repo }));
     } catch (e) {
       console.log(e);
