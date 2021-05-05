@@ -3,6 +3,7 @@ import { Repository } from '../model/Repository';
 import { parseISO } from 'date-fns';
 import { PullRequest, PullRequestNode } from '../model/PullRequest';
 import { Organization } from '../model/Organization';
+import { Issue, IssueNode } from '../model/Issue';
 
 type User = {
   id: string;
@@ -24,6 +25,25 @@ export class GitHubClient {
   private graphQLClient: GraphQLClient;
   constructor(graphQLClient: GraphQLClient) {
     this.graphQLClient = graphQLClient;
+  }
+
+  fetchAllOpenIssues(props: {
+    searchQuery: string;
+    startDateString?: string;
+    endDateString?: string;
+  }): Promise<Issue[]> {
+    const { searchQuery, startDateString, endDateString } = props;
+    const startDate = startDateString
+      ? parseISO(startDateString).toISOString()
+      : '';
+    const endDate = endDateString ? parseISO(endDateString).toISOString() : '';
+
+    let q = `is:issue is:open ${searchQuery}`;
+    if (startDate !== '' || endDate !== '') {
+      q += ` created:${startDate}..${endDate}`;
+    }
+
+    return this.fetchAllIssuesByQuery(q);
   }
 
   fetchAllMergedPullRequests(props: {
@@ -191,13 +211,16 @@ export class GitHubClient {
                 deletions
                 # for lead time
                 commits(first:100) {
-                nodes {
+                  nodes {
                     commit {
-                    authoredDate
+                      authoredDate
                     }
+                  }
                 }
+                comments {
+                  totalCount
                 }
-            }
+              }
             }
             pageInfo {
               endCursor
@@ -232,6 +255,8 @@ export class GitHubClient {
               p.deletions,
               p.commits.nodes[0].commit.authoredDate,
               p.commits.nodes[p.commits.nodes.length - 1].commit.authoredDate,
+              p.comments.totalCount,
+              p.commits.nodes.length,
             ),
         ),
       );
@@ -241,5 +266,75 @@ export class GitHubClient {
     }
 
     return prs;
+  }
+
+  public async fetchAllIssuesByQuery(searchQuery: string): Promise<Issue[]> {
+    const query = gql`
+      query($after: String) {
+        search(
+          type: ISSUE
+          first: 10
+          query: "${searchQuery}"
+          after: $after
+        ) {
+          issueCount
+          nodes {
+            ... on Issue {
+              number
+              title
+              author {
+                login
+              }
+              url
+              createdAt
+              comments {
+                totalCount
+              }
+            }
+          }
+          pageInfo {
+            endCursor
+            hasNextPage
+          }
+        }
+        rateLimit {
+          limit
+          cost
+          remaining
+          resetAt
+        }
+      }
+    `;
+
+    let after: string | undefined;
+    let issues: Issue[] = [];
+
+    while (true) {
+      const data = await this.graphQLClient.request<{
+        search: {
+          issueCount: number;
+          nodes: IssueNode[];
+          pageInfo: { endCursor: string; hasNextPage: boolean };
+        };
+      }>(query, { after });
+      issues = issues.concat(
+        data.search.nodes.map(
+          (i: IssueNode) =>
+            new Issue(
+              i.number,
+              i.title,
+              i.author.login,
+              i.url,
+              i.createdAt,
+              i.comments.totalCount,
+            ),
+        ),
+      );
+
+      if (!data.search.pageInfo.hasNextPage) break;
+      after = data.search.pageInfo.endCursor;
+    }
+
+    return issues;
   }
 }

@@ -17,6 +17,8 @@ export class PullRequest {
     public deletions: number,
     public authoredDate: string,
     public lastCommitDate: string,
+    public totalComments: number,
+    public totalCommits: number,
   ) {
     const getTime = (dateStr) => parseISO(dateStr).getTime();
     this.firstCommitToPRCreated =
@@ -39,6 +41,9 @@ export interface PullRequestNode {
   mergedAt: string;
   additions: number;
   deletions: number;
+  comments: {
+    totalCount: number;
+  };
   commits: {
     nodes: {
       commit: {
