@@ -103,7 +103,7 @@ functions:
     handler: src/handler/activityRatioHandler.main
     events:
       - http:
-          path: /repos/{repositoryOwner}/{repositoryName}/activitySummary
+          path: /repos/{repositoryOwner}/{repositoryName}/activityRatio
           method: get
           cors:
             origin: ${self:custom.environment.ORIGIN.${opt:stage}}
