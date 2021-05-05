@@ -1,6 +1,7 @@
 import { createGraphQLClient, GitHubClient } from './github';
 import { formatJSONResponse } from '../utils/apigateway';
 import { add, format } from 'date-fns';
+import { PullRequest } from '../model/PullRequest';
 
 type MergedPullRequestPerDay = {
   mergedAt: string; // YYYY-MM-DD
@@ -16,9 +17,9 @@ type GetMergedPullRequestPerDayProps = {
 class PullRequestService {
   constructor(public token: string) {}
 
-  async getMergedPullRequestPerDay(
+  async getMergedPullRequests(
     props: GetMergedPullRequestPerDayProps,
-  ): Promise<MergedPullRequestPerDay[]> {
+  ): Promise<PullRequest[]> {
     const { repositoryNameWithOwner, startDateString, endDateString } = props;
     try {
       const gqlClient = createGraphQLClient(this.token);
@@ -28,6 +29,20 @@ class PullRequestService {
         endDateString,
         searchQuery: `repo:${repositoryNameWithOwner}`,
       });
+
+      return result;
+    } catch (e) {
+      console.log(e);
+      throw formatJSONResponse(403, { message: 'unauthorized' });
+    }
+  }
+
+  async getMergedPullRequestPerDay(
+    props: GetMergedPullRequestPerDayProps,
+  ): Promise<MergedPullRequestPerDay[]> {
+    const { startDateString, endDateString } = props;
+    try {
+      const result = await this.getMergedPullRequests(props);
 
       const count: { [day: string]: number } = result
         .map((pr) => format(new Date(pr.mergedAt), 'yyyy-MM-dd'))

@@ -179,6 +179,7 @@ export class GitHubClient {
             issueCount
             nodes {
             ... on PullRequest {
+                number
                 title
                 author {
                 login
@@ -189,7 +190,7 @@ export class GitHubClient {
                 additions
                 deletions
                 # for lead time
-                commits(first:1) {
+                commits(first:100) {
                 nodes {
                     commit {
                     authoredDate
@@ -221,6 +222,7 @@ export class GitHubClient {
         data.search.nodes.map(
           (p: PullRequestNode) =>
             new PullRequest(
+              p.number,
               p.title,
               p.author.login,
               p.url,
@@ -229,6 +231,7 @@ export class GitHubClient {
               p.additions,
               p.deletions,
               p.commits.nodes[0].commit.authoredDate,
+              p.commits.nodes[p.commits.nodes.length - 1].commit.authoredDate,
             ),
         ),
       );

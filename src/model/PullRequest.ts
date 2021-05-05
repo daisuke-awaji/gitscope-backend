@@ -1,10 +1,13 @@
 import { parseISO } from 'date-fns';
 
+type Secounds = number;
 export class PullRequest {
-  public leadTimeSeconds: number;
-  public timeToMergeSeconds: number;
+  public firstCommitToPRCreated: Secounds;
+  public prCreatedAtToLastCommit: Secounds;
+  public lastCommitToMerge: Secounds;
 
   constructor(
+    public number: number,
     public title: string,
     public author: string,
     public url: string,
@@ -13,16 +16,20 @@ export class PullRequest {
     public additions: number,
     public deletions: number,
     public authoredDate: string,
+    public lastCommitDate: string,
   ) {
-    const mergedAtMillis = parseISO(this.mergedAt).getTime();
-    this.leadTimeSeconds =
-      (mergedAtMillis - parseISO(this.authoredDate).getTime()) / 1000;
-    this.timeToMergeSeconds =
-      (mergedAtMillis - parseISO(this.createdAt).getTime()) / 1000;
+    const getTime = (dateStr) => parseISO(dateStr).getTime();
+    this.firstCommitToPRCreated =
+      (getTime(createdAt) - getTime(authoredDate)) / 1000;
+    this.prCreatedAtToLastCommit =
+      (getTime(lastCommitDate) - getTime(authoredDate)) / 1000;
+    this.lastCommitToMerge =
+      (getTime(mergedAt) - getTime(lastCommitDate)) / 1000;
   }
 }
 
 export interface PullRequestNode {
+  number: number;
   title: string;
   author: {
     login: string;

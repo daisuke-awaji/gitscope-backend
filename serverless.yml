@@ -56,6 +56,29 @@ functions:
     handler: src/handler/mergedPullRequestsPerDay.main
     events:
       - http:
+          path: /repos/{repositoryOwner}/{repositoryName}/prsPerDay
+          method: get
+          cors:
+            origin: ${self:custom.environment.ORIGIN.${opt:stage}}
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+          request:
+            parameters:
+              querystrings:
+                startDateString: false
+                endDateString: false
+              paths:
+                repositoryOwner: true
+                repositoryName: true
+  pullRequestsHandler:
+    handler: src/handler/pullRequestsHandler.main
+    events:
+      - http:
           path: /repos/{repositoryOwner}/{repositoryName}/prs
           method: get
           cors:

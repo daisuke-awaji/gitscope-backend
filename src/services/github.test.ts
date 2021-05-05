@@ -22,7 +22,7 @@ test('own repositories', async (done) => {
   const token = process.env.TEST_TOKEN;
   const gqlClient = createGraphQLClient(token);
   const client = new GitHubClient(gqlClient);
-  const orgs = await client.fetchOwnRepositories();
+  const orgs = await client.fetchRepositoriesRelatedToMe();
   console.log(orgs);
   done();
 });
@@ -44,5 +44,19 @@ test('all merged pullrequests', async (done) => {
   });
   console.log(orgsFilterByDateRange);
   console.log(orgsFilterByDateRange.length);
+  done();
+});
+
+test.only('all merged pullrequests facebook/react', async (done) => {
+  const token = process.env.TEST_TOKEN;
+  const gqlClient = createGraphQLClient(token);
+  const client = new GitHubClient(gqlClient);
+  const prs = await client.fetchAllMergedPullRequests({
+    searchQuery: 'repo:facebook/react',
+    startDateString: '2021-05-01',
+    endDateString: '2021-05-29',
+  });
+  console.log(prs);
+  console.log(prs.length);
   done();
 });
