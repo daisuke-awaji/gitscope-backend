@@ -1,9 +1,11 @@
 import { APIGatewayProxyEvent } from "aws-lambda";
-import { formatJSONResponse } from "./apigateway";
+import createHttpError from "http-errors";
 
 export const parseBearerToken = (event: APIGatewayProxyEvent) => {
   if (!event.headers.Authorization) {
-    throw formatJSONResponse(400, { message: "aurhorization header not set" });
+    throw new createHttpError.Forbidden(
+      JSON.stringify({ message: "There is something wrong with the token" })
+    );
   }
 
   const token = event.headers.Authorization.split(" ")[1]; // Bearer tokentokentoken

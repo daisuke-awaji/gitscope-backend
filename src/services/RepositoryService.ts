@@ -1,6 +1,6 @@
-import { createGraphQLClient, GitHubClient } from './github';
-import { formatJSONResponse } from '../utils/apigateway';
-import { Repository } from '../model/Repository';
+import { createGraphQLClient, GitHubClient } from "./github";
+import { Repository } from "../model/Repository";
+import createHttpError from "http-errors";
 
 interface RepositoryStatus extends Repository {
   followed: boolean;
@@ -8,14 +8,14 @@ interface RepositoryStatus extends Repository {
 
 class RepositoryService {
   async run(token: string): Promise<RepositoryStatus[]> {
+    const gqlClient = createGraphQLClient(token);
+    const client = new GitHubClient(gqlClient);
+
     try {
-      const gqlClient = createGraphQLClient(token);
-      const client = new GitHubClient(gqlClient);
       const result = await client.fetchRepositoriesRelatedToMe();
       return result.map((repo) => ({ followed: false, ...repo }));
     } catch (e) {
-      console.log(e);
-      throw formatJSONResponse(403, { message: 'unauthorized' });
+      throw new createHttpError.Forbidden(e.toString());
     }
   }
 }

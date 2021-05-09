@@ -1,7 +1,7 @@
-import { createGraphQLClient, GitHubClient } from './github';
-import { formatJSONResponse } from '../utils/apigateway';
-import { add, format } from 'date-fns';
-import { PullRequest } from '../model/PullRequest';
+import { createGraphQLClient, GitHubClient } from "./github";
+import { add, format } from "date-fns";
+import { PullRequest } from "../model/PullRequest";
+import createHttpError from "http-errors";
 
 type MergedPullRequestPerDay = {
   mergedAt: string; // YYYY-MM-DD
@@ -18,7 +18,7 @@ class PullRequestService {
   constructor(public token: string) {}
 
   async getMergedPullRequests(
-    props: GetMergedPullRequestPerDayProps,
+    props: GetMergedPullRequestPerDayProps
   ): Promise<PullRequest[]> {
     const { repositoryNameWithOwner, startDateString, endDateString } = props;
     try {
@@ -33,19 +33,19 @@ class PullRequestService {
       return result;
     } catch (e) {
       console.log(e);
-      throw formatJSONResponse(403, { message: 'unauthorized' });
+      throw new createHttpError.Forbidden(e);
     }
   }
 
   async getMergedPullRequestPerDay(
-    props: GetMergedPullRequestPerDayProps,
+    props: GetMergedPullRequestPerDayProps
   ): Promise<MergedPullRequestPerDay[]> {
     const { startDateString, endDateString } = props;
     try {
       const result = await this.getMergedPullRequests(props);
 
       const count: { [day: string]: number } = result
-        .map((pr) => format(new Date(pr.mergedAt), 'yyyy-MM-dd'))
+        .map((pr) => format(new Date(pr.mergedAt), "yyyy-MM-dd"))
         .reduce((prev, current) => {
           prev[current] = (prev[current] || 0) + 1;
           return prev;
@@ -54,7 +54,7 @@ class PullRequestService {
       let counter = new Date(startDateString);
       const prPerDays: MergedPullRequestPerDay[] = [];
       while (counter < new Date(endDateString)) {
-        const oneDay = format(counter, 'yyyy-MM-dd');
+        const oneDay = format(counter, "yyyy-MM-dd");
         if (count.hasOwnProperty(oneDay)) {
           prPerDays.push({ mergedAt: oneDay, count: count[oneDay] });
         } else {
@@ -65,7 +65,7 @@ class PullRequestService {
       return prPerDays;
     } catch (e) {
       console.log(e);
-      throw formatJSONResponse(403, { message: 'unauthorized' });
+      throw new createHttpError.Forbidden(e);
     }
   }
 }

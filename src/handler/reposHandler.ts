@@ -1,8 +1,8 @@
-import { APIGatewayProxyEvent } from 'aws-lambda';
-import RepositoryService from '../services/RepositoryService';
-import { formatJSONResponse } from '../utils/apigateway';
-import { parseBearerToken } from '../utils/auth';
-import { handleError } from '../utils/middleware';
+import { APIGatewayProxyEvent } from "aws-lambda";
+import RepositoryService from "../services/RepositoryService";
+import { formatJSONResponse } from "../utils/apigateway";
+import { parseBearerToken } from "../utils/auth";
+import { middify } from "../utils/middify";
 
 const repos = async (event: APIGatewayProxyEvent): Promise<any> => {
   const token = parseBearerToken(event);
@@ -11,4 +11,4 @@ const repos = async (event: APIGatewayProxyEvent): Promise<any> => {
   return formatJSONResponse(200, { repos });
 };
 
-export const main = handleError(repos);
+export const main = middify({ handler: repos });
