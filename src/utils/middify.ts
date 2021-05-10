@@ -4,7 +4,7 @@ import validator from "@middy/validator";
 import httpErrorHandler from "@middy/http-error-handler";
 import httpJsonBodyParser from "@middy/http-json-body-parser";
 import { Handler } from "aws-lambda";
-import cors from "@middy/http-cors";
+// import cors from "@middy/http-cors";
 
 type MiddifyProps = {
   handler: Handler;
@@ -17,13 +17,14 @@ export const middify = ({ handler, validatorOptions }: MiddifyProps) => {
   const middifiedHandler = middy(handler)
     .use(httpJsonBodyParser())
     .use(inputOutputLogger())
-    .use(httpErrorHandler())
-    .use(
-      cors({
-        credentials: true,
-        origin: process.env.ORIGIN,
-      })
-    );
+    .use(httpErrorHandler());
+  // .use(
+  //   cors({
+  //     credentials: true,
+  //     origin: process.env.ORIGIN,
+
+  //   })
+  // );
 
   if (validatorOptions?.inputSchema) {
     middifiedHandler.use(

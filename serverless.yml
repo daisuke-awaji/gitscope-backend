@@ -32,6 +32,26 @@ provider:
     GITHUB_CLIENT_ID: ${ssm:/gitscope/${opt:stage}/githubClientId}
     GITHUB_CLIENT_SECRET: ${ssm:/gitscope/${opt:stage}/githubClientSecret}
     ORIGIN: ${self:custom.environment.ORIGIN.${opt:stage}}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        # default
+        - logs:CreateLogStream # default
+        - logs:PutLogEvents # default
+        - logs:CreateLogGroup
+        # CloudWatchReacOnlyAccess
+        - 'autoscaling:Describe*'
+        - 'cloudwatch:Describe*'
+        - 'cloudwatch:Get*'
+        - 'cloudwatch:List*'
+        - 'logs:Get*'
+        - 'logs:List*'
+        - 'logs:Describe*'
+        - 'logs:TestMetricFilter'
+        - 'logs:FilterLogEvents'
+        - 'dynamodb:*'
+      Resource:
+        - '*'    
 
 plugins:
   - serverless-plugin-typescript
@@ -53,7 +73,7 @@ resources: # CloudFormation template syntax
           - AttributeName: login
             KeyType: HASH
           - AttributeName: repositoryNameWithOwner
-            KeyType: SORT
+            KeyType: RANGE
         ProvisionedThroughput:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1

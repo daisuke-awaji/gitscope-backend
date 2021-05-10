@@ -7,7 +7,7 @@ import { middify } from "../utils/middify";
 const repos = async (event: APIGatewayProxyEvent): Promise<any> => {
   const token = parseBearerToken(event);
   const service = new RepositoryService();
-  const repos = await service.run(token);
+  const repos = await service.findAllRelatedToMe(token);
   return formatJSONResponse(200, { repos });
 };
 

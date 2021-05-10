@@ -9,7 +9,7 @@ const dynamodbLocal = new DynamoDB({
 }); // the SDK client used to execute operations
 
 const dynamdbClient = new DynamoDB({
-  region: "ap-northeast-1",
+  region: "us-east-1",
   httpOptions: {
     timeout: 10000, // デフォルト 120000 ms (2min) は長すぎるので APIGateway タイムアウト 29s に収まる範囲とする
   },

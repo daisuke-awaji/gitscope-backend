@@ -8,7 +8,7 @@ interface RepositoryStatus extends Repository {
 }
 
 class RepositoryService {
-  async run(token: string): Promise<RepositoryStatus[]> {
+  async findAllRelatedToMe(token: string): Promise<RepositoryStatus[]> {
     const gqlClient = createGraphQLClient(token);
     const client = new GitHubClient(gqlClient);
 
