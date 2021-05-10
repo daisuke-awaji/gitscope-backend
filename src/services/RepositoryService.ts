@@ -26,13 +26,15 @@ class RepositoryService {
       });
 
       if (followed) {
-        return repoSettings.map((item) => {
-          return {
-            followed: item.enabled,
-            nameWithOwner: item.repositoryNameWithOwner,
-            url: `https://github.com/${item.repositoryNameWithOwner}`,
-          };
-        });
+        return repoSettings
+          .filter((item) => item.enabled)
+          .map((item) => {
+            return {
+              followed: item.enabled,
+              nameWithOwner: item.repositoryNameWithOwner,
+              url: `https://github.com/${item.repositoryNameWithOwner}`,
+            };
+          });
       }
 
       const result = await client.fetchRepositoriesRelatedToMe();
