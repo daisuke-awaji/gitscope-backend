@@ -20,7 +20,11 @@ class RepositoryService {
       const user = await client.fetchLoginUser();
 
       const dao = new UserRepositorySettingDao();
-      const repoSettings = await dao.findByLogin({ login: user.login });
+      const repoSettings = await dao
+        .findByLogin({ login: user.login })
+        .catch((e) => {
+          return null;
+        });
 
       return result
         .map((repo) => {
