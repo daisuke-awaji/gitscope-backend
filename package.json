@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "lint": "tslint -p tsconfig.json -c tslint.json",
-    "start": "serverless offline --stage dev --port 4000",
+    "start": "serverless offline start --stage dev",
     "deploy": "serverless deploy --stage prod",
     "test": "jest",
     "test:watch": "jest --watch"
@@ -14,18 +14,22 @@
     "lint"
   ],
   "dependencies": {
+    "@aws/dynamodb-data-mapper": "^0.7.3",
+    "@aws/dynamodb-data-mapper-annotations": "^0.7.3",
+    "@middy/core": "^2.2.0",
     "@middy/http-cors": "^2.2.0",
     "@middy/http-error-handler": "^2.2.0",
     "@middy/http-json-body-parser": "^2.2.0",
     "@middy/input-output-logger": "^2.2.0",
     "@middy/validator": "^2.2.0",
-    "@middy/core": "^2.2.0",
     "axios": "^0.21.1",
     "date-fns": "^2.21.1",
     "graphql": "^15.5.0",
     "graphql-request": "^3.4.0",
     "http-errors": "^1.8.0",
-    "querystring": "^0.2.1"
+    "json-schema-to-ts": "^1.6.4",
+    "querystring": "^0.2.1",
+    "serverless-dynamodb-local": "^0.2.39"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.76",

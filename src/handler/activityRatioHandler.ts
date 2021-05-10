@@ -1,19 +1,19 @@
-import { APIGatewayProxyEvent } from 'aws-lambda';
-import PullRequestService from '../services/PullRequestService';
-import { formatJSONResponse } from '../utils/apigateway';
-import { parseBearerToken } from '../utils/auth';
-import { handleError } from '../utils/middleware';
-import { format, sub } from 'date-fns';
-import IssueService from '../services/IssueService';
+import { APIGatewayProxyEvent } from "aws-lambda";
+import PullRequestService from "../services/PullRequestService";
+import { formatJSONResponse } from "../utils/apigateway";
+import { parseBearerToken } from "../utils/auth";
+import { format, sub } from "date-fns";
+import IssueService from "../services/IssueService";
+import { middify } from "../utils/middify";
 
 const activityRatioHandler = async (
-  event: APIGatewayProxyEvent,
+  event: APIGatewayProxyEvent
 ): Promise<any> => {
   const token = parseBearerToken(event);
   const qs = event.queryStringParameters;
 
-  const pastOneWeek = format(sub(new Date(), { days: 7 }), 'yyyy-MM-dd');
-  const today = format(new Date(), 'yyyy-MM-dd');
+  const pastOneWeek = format(sub(new Date(), { days: 7 }), "yyyy-MM-dd");
+  const today = format(new Date(), "yyyy-MM-dd");
   const startDateString = qs ? qs.startDateString || pastOneWeek : pastOneWeek;
   const endDateString = qs ? qs.endDateString || today : today;
 
@@ -48,4 +48,4 @@ const activityRatioHandler = async (
   });
 };
 
-export const main = handleError(activityRatioHandler);
+export const main = middify({ handler: activityRatioHandler });

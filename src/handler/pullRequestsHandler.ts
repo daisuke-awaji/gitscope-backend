@@ -1,18 +1,18 @@
-import { APIGatewayProxyEvent } from 'aws-lambda';
-import PullRequestService from '../services/PullRequestService';
-import { formatJSONResponse } from '../utils/apigateway';
-import { parseBearerToken } from '../utils/auth';
-import { handleError } from '../utils/middleware';
-import { format, sub } from 'date-fns';
+import { APIGatewayProxyEvent } from "aws-lambda";
+import PullRequestService from "../services/PullRequestService";
+import { formatJSONResponse } from "../utils/apigateway";
+import { parseBearerToken } from "../utils/auth";
+import { format, sub } from "date-fns";
+import { middify } from "../utils/middify";
 
 const pullRequestsHandler = async (
-  event: APIGatewayProxyEvent,
+  event: APIGatewayProxyEvent
 ): Promise<any> => {
   const token = parseBearerToken(event);
   const qs = event.queryStringParameters;
 
-  const pastOneWeek = format(sub(new Date(), { days: 7 }), 'yyyy-MM-dd');
-  const today = format(new Date(), 'yyyy-MM-dd');
+  const pastOneWeek = format(sub(new Date(), { days: 7 }), "yyyy-MM-dd");
+  const today = format(new Date(), "yyyy-MM-dd");
   const startDateString = qs ? qs.startDateString || pastOneWeek : pastOneWeek;
   const endDateString = qs ? qs.endDateString || today : today;
 
@@ -28,4 +28,4 @@ const pullRequestsHandler = async (
   return formatJSONResponse(200, { prs });
 };
 
-export const main = handleError(pullRequestsHandler);
+export const main = middify({ handler: pullRequestsHandler });

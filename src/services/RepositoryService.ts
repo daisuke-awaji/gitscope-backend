@@ -1,6 +1,7 @@
 import { createGraphQLClient, GitHubClient } from "./github";
 import { Repository } from "../model/Repository";
 import createHttpError from "http-errors";
+import { UserRepositorySettingDao } from "../dao/UserRepositorySettingDao";
 
 interface RepositoryStatus extends Repository {
   followed: boolean;
@@ -13,7 +14,20 @@ class RepositoryService {
 
     try {
       const result = await client.fetchRepositoriesRelatedToMe();
-      return result.map((repo) => ({ followed: false, ...repo }));
+      const user = await client.fetchLoginUser();
+
+      const dao = new UserRepositorySettingDao();
+      const repoSettings = await dao.findByLogin({ login: user.login });
+
+      return result.map((repo) => {
+        const one = repoSettings.find(
+          (i) => i.repositoryNameWithOwner === repo.nameWithOwner
+        );
+        if (one) {
+          return { followed: one.enabled, ...repo };
+        }
+        return { followed: false, ...repo };
+      });
     } catch (e) {
       throw new createHttpError.Forbidden(e.toString());
     }

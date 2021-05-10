@@ -1,21 +1,34 @@
-import { APIGatewayProxyEvent } from "aws-lambda";
-import { formatJSONResponse } from "../utils/apigateway";
-// import { parseBearerToken } from "../utils/auth";
-// import { handleError } from "../utils/middleware";
+import {
+  formatJSONResponse,
+  ValidatedEventAPIGatewayProxyEvent,
+} from "../utils/apigateway";
 import { middify } from "../utils/middify";
-// const createError = require("http-errors");
 import createError from "http-errors";
+import { UserRepositorySettingDao } from "../dao/UserRepositorySettingDao";
+import { parseBearerToken } from "../utils/auth";
+import { createGraphQLClient, GitHubClient } from "../services/github";
 
-const setUpRepositoryHandler = async (
-  event: APIGatewayProxyEvent
-): Promise<any> => {
+const setUpRepositoryHandler: ValidatedEventAPIGatewayProxyEvent<
+  typeof inputSchema
+> = async (event): Promise<any> => {
+  const token = parseBearerToken(event as any);
+  const gqlClient = createGraphQLClient(token);
+  const client = new GitHubClient(gqlClient);
+  const user = await client.fetchLoginUser().catch((e) => {
+    throw new createError.Unauthorized();
+  });
+
   const { body } = event;
 
-  if (body["enabled"] === true) {
-    throw new createError.BadRequest();
-  }
+  const dao = new UserRepositorySettingDao();
+  const { repositoryName, repositoryOwner } = event.pathParameters;
+  const saved = await dao.save({
+    login: user.login,
+    repositoryNameWithOwner: repositoryOwner + "/" + repositoryName,
+    enabled: body.enabled,
+  } as any);
 
-  return formatJSONResponse(200, { body });
+  return formatJSONResponse(200, { userRepositorySetting: saved });
 };
 
 const inputSchema = {
@@ -26,9 +39,11 @@ const inputSchema = {
       properties: {
         enabled: { type: "boolean" },
       },
+      required: ["enabled"],
     },
   },
-};
+  required: ["body"],
+} as const;
 
 export const main = middify({
   handler: setUpRepositoryHandler,
