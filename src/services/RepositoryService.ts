@@ -2,6 +2,7 @@ import { createGraphQLClient, GitHubClient } from "./github";
 import { Repository } from "../model/Repository";
 import createHttpError from "http-errors";
 import { UserRepositorySettingDao } from "../dao/UserRepositorySettingDao";
+import { UserRepositorySetting } from "../model/UserRepositorySetting";
 
 interface RepositoryStatus extends Repository {
   followed: boolean;
@@ -16,15 +17,25 @@ class RepositoryService {
     const client = new GitHubClient(gqlClient);
 
     try {
-      const result = await client.fetchRepositoriesRelatedToMe();
       const user = await client.fetchLoginUser();
-
       const dao = new UserRepositorySettingDao();
-      const repoSettings = await dao
-        .findByLogin({ login: user.login })
-        .catch((e) => {
-          return null;
+      const repoSettings:
+        | UserRepositorySetting[]
+        | null = await dao.findByLogin({ login: user.login }).catch((e) => {
+        return null;
+      });
+
+      if (followed) {
+        return repoSettings.map((item) => {
+          return {
+            followed: item.enabled,
+            nameWithOwner: item.repositoryNameWithOwner,
+            url: `https://github.com/${item.repositoryNameWithOwner}`,
+          };
         });
+      }
+
+      const result = await client.fetchRepositoriesRelatedToMe();
 
       return result
         .map((repo) => {
