@@ -8,7 +8,10 @@ interface RepositoryStatus extends Repository {
 }
 
 class RepositoryService {
-  async findAllRelatedToMe(token: string): Promise<RepositoryStatus[]> {
+  async findAllRelatedToMe(
+    token: string,
+    followed?: boolean
+  ): Promise<RepositoryStatus[]> {
     const gqlClient = createGraphQLClient(token);
     const client = new GitHubClient(gqlClient);
 
@@ -19,15 +22,22 @@ class RepositoryService {
       const dao = new UserRepositorySettingDao();
       const repoSettings = await dao.findByLogin({ login: user.login });
 
-      return result.map((repo) => {
-        const one = repoSettings.find(
-          (i) => i.repositoryNameWithOwner === repo.nameWithOwner
-        );
-        if (one) {
-          return { followed: one.enabled, ...repo };
-        }
-        return { followed: false, ...repo };
-      });
+      return result
+        .map((repo) => {
+          const one = repoSettings.find(
+            (i) => i.repositoryNameWithOwner === repo.nameWithOwner
+          );
+          if (one) {
+            return { followed: one.enabled, ...repo };
+          }
+          return { followed: false, ...repo };
+        })
+        .filter((item) => {
+          if (followed !== undefined) {
+            return item.followed === followed;
+          }
+          return true;
+        });
     } catch (e) {
       throw new createHttpError.Forbidden(e.toString());
     }
