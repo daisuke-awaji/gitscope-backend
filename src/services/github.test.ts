@@ -1,9 +1,12 @@
-import { createGraphQLClient, GitHubClient } from './github';
+import {
+  createGraphQLClient,
+  GitHubGraphQLClient,
+} from './GitHubGrqphQLClient';
 
 test('organizations', async (done) => {
   const token = process.env.TEST_TOKEN;
   const gqlClient = createGraphQLClient(token);
-  const client = new GitHubClient(gqlClient);
+  const client = new GitHubGraphQLClient(gqlClient);
   const orgs = await client.fetchOrganizations();
   console.log(orgs);
   done();
@@ -12,7 +15,7 @@ test('organizations', async (done) => {
 test('repositories', async (done) => {
   const token = process.env.TEST_TOKEN;
   const gqlClient = createGraphQLClient(token);
-  const client = new GitHubClient(gqlClient);
+  const client = new GitHubGraphQLClient(gqlClient);
   const orgs = await client.fetchRepositories({ login: 'intecrb' });
   console.log(orgs);
   done();
@@ -21,7 +24,7 @@ test('repositories', async (done) => {
 test('own repositories', async (done) => {
   const token = process.env.TEST_TOKEN;
   const gqlClient = createGraphQLClient(token);
-  const client = new GitHubClient(gqlClient);
+  const client = new GitHubGraphQLClient(gqlClient);
   const orgs = await client.fetchRepositoriesRelatedToMe();
   console.log(orgs);
   done();
@@ -30,7 +33,7 @@ test('own repositories', async (done) => {
 test('all merged pullrequests', async (done) => {
   const token = process.env.TEST_TOKEN;
   const gqlClient = createGraphQLClient(token);
-  const client = new GitHubClient(gqlClient);
+  const client = new GitHubGraphQLClient(gqlClient);
   const orgs = await client.fetchAllMergedPullRequests({
     searchQuery: 'repo:cloudformation-perfect-guide/docs',
   });
@@ -50,7 +53,7 @@ test('all merged pullrequests', async (done) => {
 test('all merged pullrequests facebook/react', async (done) => {
   const token = process.env.TEST_TOKEN;
   const gqlClient = createGraphQLClient(token);
-  const client = new GitHubClient(gqlClient);
+  const client = new GitHubGraphQLClient(gqlClient);
   const prs = await client.fetchAllMergedPullRequests({
     searchQuery: 'repo:facebook/react',
     startDateString: '2021-05-01',
@@ -64,7 +67,7 @@ test('all merged pullrequests facebook/react', async (done) => {
 test.only('count actiity ratio facebook/react', async (done) => {
   const token = process.env.TEST_TOKEN;
   const gqlClient = createGraphQLClient(token);
-  const client = new GitHubClient(gqlClient);
+  const client = new GitHubGraphQLClient(gqlClient);
   const prs = await client.fetchAllMergedPullRequests({
     searchQuery: 'repo:facebook/react',
     startDateString: '2021-05-01',

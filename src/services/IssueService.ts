@@ -1,4 +1,7 @@
-import { createGraphQLClient, GitHubClient } from './github';
+import {
+  createGraphQLClient,
+  GitHubGraphQLClient,
+} from './GitHubGrqphQLClient';
 import { formatJSONResponse } from '../utils/apigateway';
 import { Issue } from '../model/Issue';
 
@@ -15,7 +18,7 @@ class IssueService {
     const { repositoryNameWithOwner, startDateString, endDateString } = props;
     try {
       const gqlClient = createGraphQLClient(this.token);
-      const client = new GitHubClient(gqlClient);
+      const client = new GitHubGraphQLClient(gqlClient);
       const result = await client.fetchAllOpenIssues({
         startDateString,
         endDateString,

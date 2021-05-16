@@ -1,8 +1,11 @@
-import { createGraphQLClient, GitHubClient } from "./github";
-import { Repository } from "../model/Repository";
-import createHttpError from "http-errors";
-import { UserRepositorySettingDao } from "../dao/UserRepositorySettingDao";
-import { UserRepositorySetting } from "../model/UserRepositorySetting";
+import {
+  createGraphQLClient,
+  GitHubGraphQLClient,
+} from './GitHubGrqphQLClient';
+import { Repository } from '../model/Repository';
+import createHttpError from 'http-errors';
+import { UserRepositorySettingDao } from '../dao/UserRepositorySettingDao';
+import { UserRepositorySetting } from '../model/UserRepositorySetting';
 
 interface RepositoryStatus extends Repository {
   followed: boolean;
@@ -11,10 +14,10 @@ interface RepositoryStatus extends Repository {
 class RepositoryService {
   async findAllRelatedToMe(
     token: string,
-    followed?: boolean
+    followed?: boolean,
   ): Promise<RepositoryStatus[]> {
     const gqlClient = createGraphQLClient(token);
-    const client = new GitHubClient(gqlClient);
+    const client = new GitHubGraphQLClient(gqlClient);
 
     try {
       const user = await client.fetchLoginUser();
@@ -42,7 +45,7 @@ class RepositoryService {
       return result
         .map((repo) => {
           const one = repoSettings.find(
-            (i) => i.repositoryNameWithOwner === repo.nameWithOwner
+            (i) => i.repositoryNameWithOwner === repo.nameWithOwner,
           );
           if (one) {
             return { followed: one.enabled, ...repo };

@@ -9,7 +9,7 @@ custom:
   serverless-offline:
     port: 4000
   dynamodb:
-  # If you only want to use DynamoDB Local in some stages, declare them here
+    # If you only want to use DynamoDB Local in some stages, declare them here
     stages:
       - dev
     start:
@@ -21,7 +21,7 @@ custom:
       seed: true
       convertEmptyValues: true
     # Uncomment only if you already have a DynamoDB running locally
-    # noStart: true      
+    # noStart: true
 
 provider:
   name: aws
@@ -32,6 +32,7 @@ provider:
     GITHUB_CLIENT_ID: ${ssm:/gitscope/${opt:stage}/githubClientId}
     GITHUB_CLIENT_SECRET: ${ssm:/gitscope/${opt:stage}/githubClientSecret}
     ORIGIN: ${self:custom.environment.ORIGIN.${opt:stage}}
+    GITHUB_APPS_PRIVATE_KEY: ${ssm:/gitscope/${opt:stage}/privateKey}
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -51,7 +52,7 @@ provider:
         - 'logs:FilterLogEvents'
         - 'dynamodb:*'
       Resource:
-        - '*'    
+        - '*'
 
 plugins:
   - serverless-plugin-typescript
@@ -77,7 +78,6 @@ resources: # CloudFormation template syntax
         ProvisionedThroughput:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1
-
 
 functions:
   main:
@@ -124,7 +124,7 @@ functions:
               - Authorization
               - X-Api-Key
               - X-Amz-Security-Token
-              - X-Amz-User-Agent            
+              - X-Amz-User-Agent
   mergedPullRequestsPerDay:
     handler: src/handler/mergedPullRequestsPerDay.main
     events:
@@ -195,3 +195,10 @@ functions:
               paths:
                 repositoryOwner: true
                 repositoryName: true
+
+  gitHubWebhookSubscribeHandler:
+    handler: src/handler/gitHubWebhookSubscribeHandler.main
+    events:
+      - http:
+          path: /github/webhook
+          method: post

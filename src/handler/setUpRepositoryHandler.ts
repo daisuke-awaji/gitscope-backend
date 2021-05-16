@@ -1,19 +1,22 @@
 import {
   formatJSONResponse,
   ValidatedEventAPIGatewayProxyEvent,
-} from "../utils/apigateway";
-import { middify } from "../utils/middify";
-import createError from "http-errors";
-import { UserRepositorySettingDao } from "../dao/UserRepositorySettingDao";
-import { parseBearerToken } from "../utils/auth";
-import { createGraphQLClient, GitHubClient } from "../services/github";
+} from '../utils/apigateway';
+import { middify } from '../utils/middify';
+import createError from 'http-errors';
+import { UserRepositorySettingDao } from '../dao/UserRepositorySettingDao';
+import { parseBearerToken } from '../utils/auth';
+import {
+  createGraphQLClient,
+  GitHubGraphQLClient,
+} from '../services/GitHubGrqphQLClient';
 
 const setUpRepositoryHandler: ValidatedEventAPIGatewayProxyEvent<
   typeof inputSchema
 > = async (event): Promise<any> => {
   const token = parseBearerToken(event as any);
   const gqlClient = createGraphQLClient(token);
-  const client = new GitHubClient(gqlClient);
+  const client = new GitHubGraphQLClient(gqlClient);
   const user = await client.fetchLoginUser().catch((e) => {
     throw new createError.Unauthorized();
   });
@@ -24,7 +27,7 @@ const setUpRepositoryHandler: ValidatedEventAPIGatewayProxyEvent<
   const { repositoryName, repositoryOwner } = event.pathParameters;
   const saved = await dao.save({
     login: user.login,
-    repositoryNameWithOwner: repositoryOwner + "/" + repositoryName,
+    repositoryNameWithOwner: repositoryOwner + '/' + repositoryName,
     enabled: body.enabled,
   } as any);
 
@@ -32,17 +35,17 @@ const setUpRepositoryHandler: ValidatedEventAPIGatewayProxyEvent<
 };
 
 const inputSchema = {
-  type: "object",
+  type: 'object',
   properties: {
     body: {
-      type: "object",
+      type: 'object',
       properties: {
-        enabled: { type: "boolean" },
+        enabled: { type: 'boolean' },
       },
-      required: ["enabled"],
+      required: ['enabled'],
     },
   },
-  required: ["body"],
+  required: ['body'],
 } as const;
 
 export const main = middify({

@@ -1,9 +1,9 @@
-import { GraphQLClient, gql } from "graphql-request";
-import { Repository } from "../model/Repository";
-import { parseISO } from "date-fns";
-import { PullRequest, PullRequestNode } from "../model/PullRequest";
-import { Organization } from "../model/Organization";
-import { Issue, IssueNode } from "../model/Issue";
+import { GraphQLClient, gql } from 'graphql-request';
+import { Repository } from '../model/Repository';
+import { parseISO } from 'date-fns';
+import { PullRequest, PullRequestNode } from '../model/PullRequest';
+import { Organization } from '../model/Organization';
+import { Issue, IssueNode } from '../model/Issue';
 
 type User = {
   id: string;
@@ -11,17 +11,17 @@ type User = {
   login: string;
 };
 
-const GITHUB_GRAPHQL_ENDPOINT = "https://api.github.com/graphql";
+const GITHUB_GRAPHQL_ENDPOINT = 'https://api.github.com/graphql';
 
 export const createGraphQLClient = (token: string) =>
   new GraphQLClient(GITHUB_GRAPHQL_ENDPOINT, {
     headers: {
-      authorization: `token ${token}`,
+      authorization: `bearer ${token}`,
     },
     timeout: 3600_000,
   });
 
-export class GitHubClient {
+export class GitHubGraphQLClient {
   private graphQLClient: GraphQLClient;
   constructor(graphQLClient: GraphQLClient) {
     this.graphQLClient = graphQLClient;
@@ -35,11 +35,11 @@ export class GitHubClient {
     const { searchQuery, startDateString, endDateString } = props;
     const startDate = startDateString
       ? parseISO(startDateString).toISOString()
-      : "";
-    const endDate = endDateString ? parseISO(endDateString).toISOString() : "";
+      : '';
+    const endDate = endDateString ? parseISO(endDateString).toISOString() : '';
 
     let q = `is:issue is:open ${searchQuery}`;
-    if (startDate !== "" || endDate !== "") {
+    if (startDate !== '' || endDate !== '') {
       q += ` created:${startDate}..${endDate}`;
     }
 
@@ -54,11 +54,11 @@ export class GitHubClient {
     const { searchQuery, startDateString, endDateString } = props;
     const startDate = startDateString
       ? parseISO(startDateString).toISOString()
-      : "";
-    const endDate = endDateString ? parseISO(endDateString).toISOString() : "";
+      : '';
+    const endDate = endDateString ? parseISO(endDateString).toISOString() : '';
 
     let q = `is:pr is:merged ${searchQuery}`;
-    if (startDate !== "" || endDate !== "") {
+    if (startDate !== '' || endDate !== '') {
       q += ` merged:${startDate}..${endDate}`;
     }
 
@@ -140,8 +140,8 @@ export class GitHubClient {
       const data = await this.graphQLClient.request(query, { after });
       repos = repos.concat(
         data.viewer.repositories.nodes.map(
-          (repo) => new Repository(repo.nameWithOwner, repo.url)
-        )
+          (repo) => new Repository(repo.nameWithOwner, repo.url),
+        ),
       );
       if (!data.viewer.repositories.pageInfo.hasNextPage) break;
       after = data.viewer.repositories.pageInfo.endCursor;
@@ -177,8 +177,8 @@ export class GitHubClient {
       const data = await this.graphQLClient.request(query, { after, login });
       repos = repos.concat(
         data.organization.repositories.nodes.map(
-          (repo) => new Repository(repo.nameWithOwner, repo.url)
-        )
+          (repo) => new Repository(repo.nameWithOwner, repo.url),
+        ),
       );
 
       if (!data.organization.repositories.pageInfo.hasNextPage) break;
@@ -190,7 +190,7 @@ export class GitHubClient {
   }
 
   private async fetchAllPullRequestsByQuery(
-    searchQuery: string
+    searchQuery: string,
   ): Promise<PullRequest[]> {
     const query = gql`
       query($after: String) {
@@ -255,9 +255,9 @@ export class GitHubClient {
               p.commits.nodes[0].commit.authoredDate,
               p.commits.nodes[p.commits.nodes.length - 1].commit.authoredDate,
               p.comments.totalCount,
-              p.commits.nodes.length
-            )
-        )
+              p.commits.nodes.length,
+            ),
+        ),
       );
 
       if (!data.search.pageInfo.hasNextPage) break;
@@ -325,9 +325,9 @@ export class GitHubClient {
               i.author.login,
               i.url,
               i.createdAt,
-              i.comments.totalCount
-            )
-        )
+              i.comments.totalCount,
+            ),
+        ),
       );
 
       if (!data.search.pageInfo.hasNextPage) break;

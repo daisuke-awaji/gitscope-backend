@@ -8,7 +8,8 @@
     "start": "serverless offline start --stage dev",
     "deploy": "serverless deploy --stage prod",
     "test": "jest",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "install:dynamodb-local": "sls dynamodb install --stage dev"
   },
   "pre-commit": [
     "lint"
@@ -22,8 +23,10 @@
     "@middy/http-json-body-parser": "^2.2.0",
     "@middy/input-output-logger": "^2.2.0",
     "@middy/validator": "^2.2.0",
+    "@octokit/auth-app": "^3.4.0",
     "axios": "^0.21.1",
     "date-fns": "^2.21.1",
+    "faker": "^5.5.3",
     "graphql": "^15.5.0",
     "graphql-request": "^3.4.0",
     "http-errors": "^1.8.0",
@@ -33,6 +36,7 @@
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.76",
+    "@types/faker": "^5.5.5",
     "@types/http-errors": "^1.8.0",
     "@types/jest": "^26.0.23",
     "@types/lambda-tester": "^3.6.0",

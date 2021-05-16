@@ -1,7 +1,10 @@
-import { createGraphQLClient, GitHubClient } from "./github";
-import { add, format } from "date-fns";
-import { PullRequest } from "../model/PullRequest";
-import createHttpError from "http-errors";
+import {
+  createGraphQLClient,
+  GitHubGraphQLClient,
+} from './GitHubGrqphQLClient';
+import { add, format } from 'date-fns';
+import { PullRequest } from '../model/PullRequest';
+import createHttpError from 'http-errors';
 
 type MergedPullRequestPerDay = {
   mergedAt: string; // YYYY-MM-DD
@@ -18,12 +21,12 @@ class PullRequestService {
   constructor(public token: string) {}
 
   async getMergedPullRequests(
-    props: GetMergedPullRequestPerDayProps
+    props: GetMergedPullRequestPerDayProps,
   ): Promise<PullRequest[]> {
     const { repositoryNameWithOwner, startDateString, endDateString } = props;
     try {
       const gqlClient = createGraphQLClient(this.token);
-      const client = new GitHubClient(gqlClient);
+      const client = new GitHubGraphQLClient(gqlClient);
       const result = await client.fetchAllMergedPullRequests({
         startDateString,
         endDateString,
@@ -38,14 +41,14 @@ class PullRequestService {
   }
 
   async getMergedPullRequestPerDay(
-    props: GetMergedPullRequestPerDayProps
+    props: GetMergedPullRequestPerDayProps,
   ): Promise<MergedPullRequestPerDay[]> {
     const { startDateString, endDateString } = props;
     try {
       const result = await this.getMergedPullRequests(props);
 
       const count: { [day: string]: number } = result
-        .map((pr) => format(new Date(pr.mergedAt), "yyyy-MM-dd"))
+        .map((pr) => format(new Date(pr.mergedAt), 'yyyy-MM-dd'))
         .reduce((prev, current) => {
           prev[current] = (prev[current] || 0) + 1;
           return prev;
@@ -54,7 +57,7 @@ class PullRequestService {
       let counter = new Date(startDateString);
       const prPerDays: MergedPullRequestPerDay[] = [];
       while (counter < new Date(endDateString)) {
-        const oneDay = format(counter, "yyyy-MM-dd");
+        const oneDay = format(counter, 'yyyy-MM-dd');
         if (count.hasOwnProperty(oneDay)) {
           prPerDays.push({ mergedAt: oneDay, count: count[oneDay] });
         } else {
