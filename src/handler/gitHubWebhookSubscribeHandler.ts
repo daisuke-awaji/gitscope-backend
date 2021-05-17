@@ -7,8 +7,7 @@ import faker from "faker";
 import GitHubCodeArranger from "../services/ComplexityCalculator/GitHubCodeArranger";
 import ComplexityCalculator from "../services/ComplexityCalculator/ComplexityCalculator";
 import tablemark from "tablemark";
-
-const sleep = (msec) => new Promise((resolve) => setTimeout(resolve, msec));
+import fs from "fs/promises";
 
 export const handler: Handler = async (event: any): Promise<any> => {
   const xGithubEvent =
@@ -62,20 +61,27 @@ export const handler: Handler = async (event: any): Promise<any> => {
     sha,
   });
 
-  const config = {
-    target: workingDir + "/**/*.{js,ts}", // TODO: read from config file
-    threshold: 4,
-  };
+  const config = await fs
+    .readFile(workingDir + ".gitscope.config.json", "utf-8")
+    .then((data) => JSON.parse(data));
+  // const config = {
+  //   target: workingDir + "/**/*.{js,ts}", // TODO: read from config file
+  //   threshold: 4,
+  // };
   const calculator = new ComplexityCalculator();
   const result = await calculator.getCollectedComplexityGlobFiles(config);
 
-  const fileComplexities = result.map((file) => {
-    const prefix = file.complexity > config.threshold ? "🚨" : "✅";
-    return {
-      File: file.file.replace(workingDir, ""),
-      Complexity: prefix + " " + file.complexity,
-    };
-  });
+  const fileComplexities = result
+    .sort((a, b) => {
+      return a.complexity - b.complexity;
+    })
+    .map((file) => {
+      const prefix = file.complexity > config.threshold ? "🚨" : "✅";
+      return {
+        File: file.file.replace(workingDir, ""),
+        Complexity: prefix + " " + file.complexity,
+      };
+    });
   console.log(fileComplexities);
 
   const markdownStr = tablemark(fileComplexities);
