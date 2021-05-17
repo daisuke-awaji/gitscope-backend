@@ -42,7 +42,7 @@ export class CommitAnalysis {
   createdAt?: Date;
 
   @attribute({ memberType: embed(FileComplexity) })
-  fileCompexities?: Array<FileComplexity>;
+  fileComplexities?: Array<FileComplexity>;
 
   @attribute()
   riskPoint?: number;

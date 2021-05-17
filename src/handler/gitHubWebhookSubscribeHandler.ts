@@ -31,27 +31,33 @@ export const handler: Handler = async (event: any): Promise<any> => {
 
   const dao = new CommitAnalysisDao();
 
-  await Promise.all([
-    client.createCommitStatus({
+  const repositoryNameWithOwner = `${owner}/${repo}`;
+  const createCommitStatus = ({ state, description, context }) => {
+    return client.createCommitStatus({
       owner,
       repo,
       sha,
-      state: "pending",
+      state,
       target_url: jobsPage,
+      description,
+      context,
+    });
+  };
+
+  await Promise.all([
+    createCommitStatus({
+      state: "pending",
       description: "Waiting for calculate risk points.",
       context: "Risk Points",
     }),
-    client.createCommitStatus({
-      owner,
-      repo,
-      sha,
+    createCommitStatus({
       state: "pending",
-      target_url: jobsPage,
       description: "Waiting for calculate lead time",
       context: "Lead Time",
     }),
+
     dao.save({
-      repositoryNameWithOwner: `${owner}/${repo}`,
+      repositoryNameWithOwner,
       sha,
       state: "pending",
     }),
@@ -67,34 +73,31 @@ export const handler: Handler = async (event: any): Promise<any> => {
 
   await Promise.all([
     dao.save({
-      repositoryNameWithOwner: `${owner}/${repo}`,
+      repositoryNameWithOwner,
       sha,
       state: "success",
-      fileCompexities: fileComplexities,
+      fileComplexities,
       riskPoint,
       leadTime,
     }),
+
     client.createCommitComment({
       owner,
       repo,
       sha,
-      body: markdownStr,
+      body: `
+## Complexity Report 📊
+
+${markdownStr}
+`,
     }),
-    client.createCommitStatus({
-      owner,
-      repo,
-      sha,
+    createCommitStatus({
       state: "success",
-      target_url: jobsPage,
       description: `${riskPoint} / 100`,
       context: "Risk Points",
     }),
-    client.createCommitStatus({
-      owner,
-      repo,
-      sha,
+    createCommitStatus({
       state: "success",
-      target_url: jobsPage,
       description: `Open: ${leadTime.open}d, Work: ${leadTime.work}d, Review, ${leadTime.review}d`,
       context: "Lead Time",
     }),
@@ -106,12 +109,13 @@ export const handler: Handler = async (event: any): Promise<any> => {
 export const main = middify({ handler });
 async function analyze(owner: any, repo: any, jwt: any, branch: any, sha: any) {
   // AWS Lambda only support /tmp directory.
-  const workingDir = "/tmp/" + new Date().getTime() + "/" + owner + "/" + repo;
+  // const workingDir = "/tmp/" + new Date().getTime() + "/" + owner + "/" + repo;
+  const workingDir = `/tmp/${new Date().getTime()}/${owner}/${repo}`;
   const arranger = new GitHubCodeArranger();
   await arranger.cloneWithCheckout({
     login: owner,
     token: jwt,
-    repositoryUrl: `github.com/${owner}/${repo}`,
+    repositoryNameWithOwner: `${owner}/${repo}`,
     workingDir,
     branch,
     sha,

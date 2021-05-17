@@ -4,16 +4,17 @@ import { promises as fs } from "fs";
 type CheckoutCommitParam = {
   login: string;
   token: string;
-  repositoryUrl: string;
+  repositoryNameWithOwner: string;
   workingDir: string;
   branch: string;
   sha: string;
 };
 class GitHubCodeArranger {
   async cloneWithCheckout(param: CheckoutCommitParam) {
-    const { login, token, repositoryUrl, workingDir, branch, sha } = param;
+    const { login, token, repositoryNameWithOwner, workingDir, branch, sha } =
+      param;
 
-    const remote = `https://${login}:${token}@${repositoryUrl}`;
+    const remote = `https://${login}:${token}@github.com/${repositoryNameWithOwner}`;
 
     const directoryCreated = await fs
       .access(workingDir)
