@@ -86,10 +86,10 @@ export const handler: Handler = async (event: any): Promise<any> => {
       repo,
       sha,
       body: `
-      ## Complexity Report 📊
+## Complexity Report 📊
 
-      ${markdownStr}
-      `,
+${markdownStr}
+`,
     }),
     createCommitStatus({
       state: "success",
