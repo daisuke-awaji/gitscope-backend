@@ -1,11 +1,11 @@
 import {
   createGraphQLClient,
   GitHubGraphQLClient,
-} from './GitHubGrqphQLClient';
-import { Repository } from '../model/Repository';
-import createHttpError from 'http-errors';
-import { UserRepositorySettingDao } from '../dao/UserRepositorySettingDao';
-import { UserRepositorySetting } from '../model/UserRepositorySetting';
+} from "./GitHubGrqphQLClient";
+import { Repository } from "../model/Repository";
+import createHttpError from "http-errors";
+import { UserRepositorySettingDao } from "../dao/UserRepositorySettingDao";
+import { UserRepositorySetting } from "../model/UserRepositorySetting";
 
 interface RepositoryStatus extends Repository {
   followed: boolean;
@@ -14,7 +14,7 @@ interface RepositoryStatus extends Repository {
 class RepositoryService {
   async findAllRelatedToMe(
     token: string,
-    followed?: boolean,
+    followed?: boolean
   ): Promise<RepositoryStatus[]> {
     const gqlClient = createGraphQLClient(token);
     const client = new GitHubGraphQLClient(gqlClient);
@@ -22,11 +22,11 @@ class RepositoryService {
     try {
       const user = await client.fetchLoginUser();
       const dao = new UserRepositorySettingDao();
-      const repoSettings:
-        | UserRepositorySetting[]
-        | null = await dao.findByLogin({ login: user.login }).catch((e) => {
-        return null;
-      });
+      const repoSettings: UserRepositorySetting[] | null = await dao
+        .findByLogin({ login: user.login })
+        .catch(() => {
+          return null;
+        });
 
       if (followed) {
         return repoSettings
@@ -45,7 +45,7 @@ class RepositoryService {
       return result
         .map((repo) => {
           const one = repoSettings.find(
-            (i) => i.repositoryNameWithOwner === repo.nameWithOwner,
+            (i) => i.repositoryNameWithOwner === repo.nameWithOwner
           );
           if (one) {
             return { followed: one.enabled, ...repo };
