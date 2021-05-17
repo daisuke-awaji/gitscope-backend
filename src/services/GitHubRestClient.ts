@@ -1,13 +1,13 @@
-import axios, { AxiosInstance } from 'axios';
+import axios, { AxiosInstance } from "axios";
 
-const GITHUB_REST_ENDPOINT = 'https://api.github.com';
+const GITHUB_REST_ENDPOINT = "https://api.github.com";
 
 const createApiClient = (token) => {
   return axios.create({
     baseURL: GITHUB_REST_ENDPOINT,
     headers: {
       authorization: `bearer ${token}`,
-      accept: 'application/vnd.github.machine-man-preview+json',
+      accept: "application/vnd.github.v3+json",
     },
     timeout: 3600_000,
   });
@@ -17,10 +17,20 @@ type CreateCommitStatus = {
   owner: string;
   repo: string;
   sha: string;
-  state: 'error' | 'failure' | 'pending' | 'success';
+  state: "error" | "failure" | "pending" | "success";
   target_url: string;
   description: string;
   context: string;
+};
+
+type CreateCommitComment = {
+  owner: string;
+  repo: string;
+  sha: string;
+  body: string;
+  path?: string;
+  position?: number;
+  line?: number;
 };
 
 // type CommitStatus =
@@ -40,7 +50,21 @@ export class GitHubRestClient {
         target_url,
         description,
         context,
-      },
+      }
+    );
+    return result;
+  }
+
+  createCommitComment(param: CreateCommitComment) {
+    const { owner, repo, sha, body, path, position, line } = param;
+    const result = this.client.post(
+      `/repos/${owner}/${repo}/commits/${sha}/comments`,
+      {
+        body,
+        path,
+        position,
+        line,
+      }
     );
     return result;
   }
