@@ -22,6 +22,7 @@ export const handler: Handler = async (event: any): Promise<any> => {
   const installationId = event.body.installation.id;
   const repo = event.body.repository.name;
   const owner = event.body.repository.owner.login;
+  const branch = event.body.ref.replace("refs/heads/", "");
 
   const jwt = await createJWT(installationId);
   const client = new GitHubRestClient(jwt);
@@ -56,58 +57,14 @@ export const handler: Handler = async (event: any): Promise<any> => {
     }),
   ]);
 
-  // AWS Lambda only support /tmp directory.
-  const workingDir = "/tmp/" + new Date().getTime() + "/" + owner + "/" + repo;
-  const arranger = new GitHubCodeArranger();
-  await arranger.cloneWithCheckout({
-    login: owner,
-    token: jwt,
-    repositoryUrl: `github.com/${owner}/${repo}`,
-    workingDir,
-    branch: event.body.ref.replace("refs/heads/", ""),
-    sha,
-  });
+  const { fileComplexities, riskPoint, leadTime, markdownStr } = await analyze(
+    owner,
+    repo,
+    jwt,
+    branch,
+    sha
+  );
 
-  // TODO: validation
-  const config = await fs
-    .readFile(workingDir + "/.gitscope.config.json", "utf-8")
-    .then((data) => JSON.parse(data))
-    .catch((e) => {
-      throw formatJSONResponse(400, {
-        message:
-          "The configuration file is invalid. To be sure the .gitscope.config.json at project root directory.",
-        error: e,
-      });
-    });
-
-  const calculator = new ComplexityCalculator();
-  const fileComplexities = await calculator.getCollectedComplexityGlobFiles({
-    target: workingDir + config.target,
-    threshold: config.threshold,
-  });
-
-  const formattedFileComplexities = fileComplexities
-    .sort((a, b) => {
-      return b.complexity - a.complexity;
-    })
-    .map((file) => {
-      const prefix = file.complexity > config.threshold ? "🚨" : "✅";
-      return {
-        File: file.file.replace(workingDir, ""),
-        Complexity: prefix + " " + file.complexity,
-      };
-    });
-  console.log(formattedFileComplexities);
-
-  const markdownStr = tablemark(formattedFileComplexities.splice(0, 20)); // TOP 20
-
-  // TODO: calculate
-  const riskPoint = faker.datatype.number(100);
-  const leadTime = {
-    open: faker.datatype.number(5),
-    work: faker.datatype.number(5),
-    review: faker.datatype.number(5),
-  };
   await Promise.all([
     dao.save({
       repositoryNameWithOwner: `${owner}/${repo}`,
@@ -147,3 +104,57 @@ export const handler: Handler = async (event: any): Promise<any> => {
 };
 
 export const main = middify({ handler });
+async function analyze(owner: any, repo: any, jwt: any, branch: any, sha: any) {
+  // AWS Lambda only support /tmp directory.
+  const workingDir = "/tmp/" + new Date().getTime() + "/" + owner + "/" + repo;
+  const arranger = new GitHubCodeArranger();
+  await arranger.cloneWithCheckout({
+    login: owner,
+    token: jwt,
+    repositoryUrl: `github.com/${owner}/${repo}`,
+    workingDir,
+    branch,
+    sha,
+  });
+
+  // TODO: validation
+  const config = await fs
+    .readFile(workingDir + "/.gitscope.config.json", "utf-8")
+    .then((data) => JSON.parse(data))
+    .catch((e) => {
+      throw formatJSONResponse(400, {
+        message:
+          "The configuration file is invalid. To be sure the .gitscope.config.json at project root directory.",
+        error: e,
+      });
+    });
+
+  const calculator = new ComplexityCalculator();
+  const fileComplexities = await calculator.getCollectedComplexityGlobFiles({
+    target: workingDir + config.target,
+    threshold: config.threshold,
+  });
+
+  const formattedFileComplexities = fileComplexities
+    .sort((a, b) => {
+      return b.complexity - a.complexity;
+    })
+    .map((file) => {
+      const prefix = file.complexity > config.threshold ? "🚨" : "✅";
+      return {
+        File: file.file.replace(workingDir, ""),
+        Complexity: prefix + " " + file.complexity,
+      };
+    });
+
+  const markdownStr = tablemark(formattedFileComplexities.splice(0, 20)); // TOP 20
+
+  // TODO: calculate
+  const riskPoint = faker.datatype.number(100);
+  const leadTime = {
+    open: faker.datatype.number(5),
+    work: faker.datatype.number(5),
+    review: faker.datatype.number(5),
+  };
+  return { fileComplexities, riskPoint, leadTime, markdownStr };
+}

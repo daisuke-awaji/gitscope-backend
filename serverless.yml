@@ -2,6 +2,7 @@ app: gitscope-backend
 service: gitscope-backend
 
 custom:
+  useDotenv: true
   environment:
     ORIGIN:
       prod: https://gitscope.vercel.app
