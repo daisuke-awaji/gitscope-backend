@@ -8,6 +8,7 @@ import GitHubCodeArranger from "../services/ComplexityCalculator/GitHubCodeArran
 import ComplexityCalculator from "../services/ComplexityCalculator/ComplexityCalculator";
 import tablemark from "tablemark";
 import fs from "fs/promises";
+import { CommitAnalysisDao } from "../dao/CommitAnalysisDao";
 
 export const handler: Handler = async (event: any): Promise<any> => {
   const xGithubEvent =
@@ -27,7 +28,8 @@ export const handler: Handler = async (event: any): Promise<any> => {
 
   const jobsPage = "https://gitscope.vercel.app/jobs";
 
-  // TODO: calucutlate xxx for push event.
+  const dao = new CommitAnalysisDao();
+
   await Promise.all([
     client.createCommitStatus({
       owner,
@@ -46,6 +48,11 @@ export const handler: Handler = async (event: any): Promise<any> => {
       target_url: jobsPage,
       description: "Waiting for calculate lead time",
       context: "Lead Time",
+    }),
+    dao.save({
+      repositoryNameWithOwner: `${owner}/${repo}`,
+      sha,
+      state: "pending",
     }),
   ]);
 
@@ -74,12 +81,12 @@ export const handler: Handler = async (event: any): Promise<any> => {
     });
 
   const calculator = new ComplexityCalculator();
-  const result = await calculator.getCollectedComplexityGlobFiles({
+  const fileComplexities = await calculator.getCollectedComplexityGlobFiles({
     target: workingDir + config.target,
     threshold: config.threshold,
   });
 
-  const fileComplexities = result
+  const formattedFileComplexities = fileComplexities
     .sort((a, b) => {
       return b.complexity - a.complexity;
     })
@@ -90,11 +97,26 @@ export const handler: Handler = async (event: any): Promise<any> => {
         Complexity: prefix + " " + file.complexity,
       };
     });
-  console.log(fileComplexities);
+  console.log(formattedFileComplexities);
 
-  const markdownStr = tablemark(fileComplexities);
+  const markdownStr = tablemark(formattedFileComplexities.splice(0, 20)); // TOP 20
 
+  // TODO: calculate
+  const riskPoint = faker.datatype.number(100);
+  const leadTime = {
+    open: faker.datatype.number(5),
+    work: faker.datatype.number(5),
+    review: faker.datatype.number(5),
+  };
   await Promise.all([
+    dao.save({
+      repositoryNameWithOwner: `${owner}/${repo}`,
+      sha,
+      state: "success",
+      fileCompexities: fileComplexities,
+      riskPoint,
+      leadTime,
+    }),
     client.createCommitComment({
       owner,
       repo,
@@ -107,7 +129,7 @@ export const handler: Handler = async (event: any): Promise<any> => {
       sha,
       state: "success",
       target_url: jobsPage,
-      description: `${faker.datatype.number(100)} / 100`,
+      description: `${riskPoint} / 100`,
       context: "Risk Points",
     }),
     client.createCommitStatus({
@@ -116,11 +138,7 @@ export const handler: Handler = async (event: any): Promise<any> => {
       sha,
       state: "success",
       target_url: jobsPage,
-      description: `Open: ${faker.datatype.number(
-        3
-      )}d, Work: ${faker.datatype.number(3)}d, Review, ${faker.datatype.number(
-        3
-      )}d`,
+      description: `Open: ${leadTime.open}d, Work: ${leadTime.work}d, Review, ${leadTime.review}d`,
       context: "Lead Time",
     }),
   ]);

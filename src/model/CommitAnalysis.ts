@@ -1,12 +1,12 @@
-import { embed } from '@aws/dynamodb-data-mapper';
+import { embed } from "@aws/dynamodb-data-mapper";
 import {
   attribute,
   hashKey,
   rangeKey,
   table,
-} from '@aws/dynamodb-data-mapper-annotations';
+} from "@aws/dynamodb-data-mapper-annotations";
 
-type CommitState = 'error' | 'failure' | 'pending' | 'success';
+type CommitState = "error" | "failure" | "pending" | "success";
 
 class LeadTime {
   @attribute()
@@ -19,7 +19,15 @@ class LeadTime {
   review: number;
 }
 
-@table('CommitAnalysis')
+class FileComplexity {
+  @attribute()
+  file: string;
+
+  @attribute()
+  complexity: number;
+}
+
+@table("CommitAnalysis")
 export class CommitAnalysis {
   @hashKey()
   repositoryNameWithOwner: string;
@@ -29,6 +37,9 @@ export class CommitAnalysis {
 
   @attribute()
   state: CommitState;
+
+  @attribute({ memberType: embed(FileComplexity) })
+  fileCompexities?: Array<FileComplexity>;
 
   @attribute()
   riskPoint?: number;
