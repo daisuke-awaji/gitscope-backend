@@ -146,7 +146,6 @@ async function analyze(owner: any, repo: any, jwt: any, branch: any, sha: any) {
         Complexity: prefix + " " + file.complexity,
       };
     });
-  console.log(formattedFileComplexities);
 
   const markdownStr = tablemark(formattedFileComplexities.splice(0, 20)); // TOP 20
 
