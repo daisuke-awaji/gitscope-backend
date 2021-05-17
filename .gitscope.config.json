@@ -1,4 +1,4 @@
 {
   "target": "/**/*.{js,ts}",
-  "threshold": 4
+  "threshold": 12
 }

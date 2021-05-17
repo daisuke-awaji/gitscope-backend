@@ -61,19 +61,27 @@ export const handler: Handler = async (event: any): Promise<any> => {
     sha,
   });
 
+  // TODO: validation
   const config = await fs
-    .readFile(workingDir + ".gitscope.config.json", "utf-8")
-    .then((data) => JSON.parse(data));
-  // const config = {
-  //   target: workingDir + "/**/*.{js,ts}", // TODO: read from config file
-  //   threshold: 4,
-  // };
+    .readFile(workingDir + "/.gitscope.config.json", "utf-8")
+    .then((data) => JSON.parse(data))
+    .catch((e) => {
+      throw formatJSONResponse(400, {
+        message:
+          "The configuration file is invalid. To be sure the .gitscope.config.json at project root directory.",
+        error: e,
+      });
+    });
+
   const calculator = new ComplexityCalculator();
-  const result = await calculator.getCollectedComplexityGlobFiles(config);
+  const result = await calculator.getCollectedComplexityGlobFiles({
+    target: workingDir + config.target,
+    threshold: config.threshold,
+  });
 
   const fileComplexities = result
     .sort((a, b) => {
-      return a.complexity - b.complexity;
+      return b.complexity - a.complexity;
     })
     .map((file) => {
       const prefix = file.complexity > config.threshold ? "🚨" : "✅";
