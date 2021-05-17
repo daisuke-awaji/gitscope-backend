@@ -22,6 +22,7 @@ export const handler: Handler = async (event: any): Promise<any> => {
   const installationId = event.body.installation.id;
   const repo = event.body.repository.name;
   const owner = event.body.repository.owner.login;
+  const branch = event.body.ref.replace("refs/heads/", "");
 
   const jwt = await createJWT(installationId);
   const client = new GitHubRestClient(jwt);
@@ -56,6 +57,54 @@ export const handler: Handler = async (event: any): Promise<any> => {
     }),
   ]);
 
+  const { fileComplexities, riskPoint, leadTime, markdownStr } = await analyze(
+    owner,
+    repo,
+    jwt,
+    branch,
+    sha
+  );
+
+  await Promise.all([
+    dao.save({
+      repositoryNameWithOwner: `${owner}/${repo}`,
+      sha,
+      state: "success",
+      fileCompexities: fileComplexities,
+      riskPoint,
+      leadTime,
+    }),
+    client.createCommitComment({
+      owner,
+      repo,
+      sha,
+      body: markdownStr,
+    }),
+    client.createCommitStatus({
+      owner,
+      repo,
+      sha,
+      state: "success",
+      target_url: jobsPage,
+      description: `${riskPoint} / 100`,
+      context: "Risk Points",
+    }),
+    client.createCommitStatus({
+      owner,
+      repo,
+      sha,
+      state: "success",
+      target_url: jobsPage,
+      description: `Open: ${leadTime.open}d, Work: ${leadTime.work}d, Review, ${leadTime.review}d`,
+      context: "Lead Time",
+    }),
+  ]);
+
+  return formatJSONResponse(200, { message: "ok" });
+};
+
+export const main = middify({ handler });
+async function analyze(owner: any, repo: any, jwt: any, branch: any, sha: any) {
   // AWS Lambda only support /tmp directory.
   const workingDir = "/tmp/" + new Date().getTime() + "/" + owner + "/" + repo;
   const arranger = new GitHubCodeArranger();
@@ -64,7 +113,7 @@ export const handler: Handler = async (event: any): Promise<any> => {
     token: jwt,
     repositoryUrl: `github.com/${owner}/${repo}`,
     workingDir,
-    branch: event.body.ref.replace("refs/heads/", ""),
+    branch,
     sha,
   });
 
@@ -108,42 +157,5 @@ export const handler: Handler = async (event: any): Promise<any> => {
     work: faker.datatype.number(5),
     review: faker.datatype.number(5),
   };
-  await Promise.all([
-    dao.save({
-      repositoryNameWithOwner: `${owner}/${repo}`,
-      sha,
-      state: "success",
-      fileCompexities: fileComplexities,
-      riskPoint,
-      leadTime,
-    }),
-    client.createCommitComment({
-      owner,
-      repo,
-      sha,
-      body: markdownStr,
-    }),
-    client.createCommitStatus({
-      owner,
-      repo,
-      sha,
-      state: "success",
-      target_url: jobsPage,
-      description: `${riskPoint} / 100`,
-      context: "Risk Points",
-    }),
-    client.createCommitStatus({
-      owner,
-      repo,
-      sha,
-      state: "success",
-      target_url: jobsPage,
-      description: `Open: ${leadTime.open}d, Work: ${leadTime.work}d, Review, ${leadTime.review}d`,
-      context: "Lead Time",
-    }),
-  ]);
-
-  return formatJSONResponse(200, { message: "ok" });
-};
-
-export const main = middify({ handler });
+  return { fileComplexities, riskPoint, leadTime, markdownStr };
+}

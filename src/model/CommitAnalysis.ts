@@ -38,6 +38,9 @@ export class CommitAnalysis {
   @attribute()
   state: CommitState;
 
+  @rangeKey({ defaultProvider: () => new Date() })
+  createdAt?: Date;
+
   @attribute({ memberType: embed(FileComplexity) })
   fileCompexities?: Array<FileComplexity>;
 
