@@ -116,7 +116,9 @@ export const handler: Handler = async (event: any): Promise<any> => {
   });
 
   // TODO: calculate
-  const riskPoint = faker.datatype.number(100);
+  const riskPoint = fileComplexities.reduce((prev, fileComplexity) => {
+    return prev + fileComplexity.complexity;
+  }, 0);
 
   const leadTime = {
     open: prs[0].firstCommitToPRCreated / (60 * 60 * 24),
@@ -142,7 +144,7 @@ export const handler: Handler = async (event: any): Promise<any> => {
     }),
     createCommitStatus({
       state: "success",
-      description: `${riskPoint} / 100`,
+      description: `${riskPoint}`,
       context: "Risk Points",
     }),
     createCommitStatus({
