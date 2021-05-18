@@ -3,7 +3,6 @@ import { createJWT } from "../services/createGitHubAppJWT";
 import { GitHubRestClient } from "../services/GitHubRestClient";
 import { formatJSONResponse } from "../utils/apigateway";
 import { middify } from "../utils/middify";
-import faker from "faker";
 import GitHubCodeArranger from "../services/ComplexityCalculator/GitHubCodeArranger";
 import ComplexityCalculator from "../services/ComplexityCalculator/ComplexityCalculator";
 import tablemark from "tablemark";
@@ -11,6 +10,15 @@ import fs from "fs/promises";
 import { CommitAnalysisDao } from "../dao/CommitAnalysisDao";
 import PullRequestService from "../services/PullRequestService";
 
+/**
+ * 任意の桁で切り上げする関数
+ * @param {number} value 四捨五入する数値
+ * @param {number} base どの桁で四捨五入するか（10→10の位、0.1→小数第１位）
+ * @return {number} 四捨五入した値
+ */
+function orgCeil(value: number, base: number) {
+  return Math.ceil(value * base) / base;
+}
 export const handler: Handler = async (event: any): Promise<any> => {
   const xGithubEvent =
     event.headers["X-GitHub-Event"] || event.headers["X-Github-Event"];
@@ -120,9 +128,17 @@ export const handler: Handler = async (event: any): Promise<any> => {
     return prev + fileComplexity.complexity;
   }, 0);
 
+  const headCommitTimestamp =
+    (new Date().getTime() -
+      new Date(event.body.head_commit.timestamp).getTime()) /
+    (60 * 60 * 24);
   const leadTime = {
-    open: prs[0].firstCommitToPRCreated / (60 * 60 * 24),
-    work: prs[0].prCreatedAtToLastCommit / (60 * 60 * 24),
+    open: prs.length
+      ? orgCeil(prs[0].firstCommitToPRCreated / (60 * 60 * 24), 100)
+      : orgCeil(headCommitTimestamp, 100),
+    work: prs.length
+      ? orgCeil(prs[0].prCreatedAtToLastCommit / (60 * 60 * 24), 100)
+      : 0,
     review: 0,
   };
 
