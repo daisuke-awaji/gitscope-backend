@@ -9,6 +9,7 @@ import ComplexityCalculator from "../services/ComplexityCalculator/ComplexityCal
 import tablemark from "tablemark";
 import fs from "fs/promises";
 import { CommitAnalysisDao } from "../dao/CommitAnalysisDao";
+import PullRequestService from "../services/PullRequestService";
 
 export const handler: Handler = async (event: any): Promise<any> => {
   const xGithubEvent =
@@ -63,51 +64,6 @@ export const handler: Handler = async (event: any): Promise<any> => {
     }),
   ]);
 
-  const { fileComplexities, riskPoint, leadTime, markdownStr } = await analyze(
-    owner,
-    repo,
-    jwt,
-    branch,
-    sha
-  );
-
-  await Promise.all([
-    dao.save({
-      repositoryNameWithOwner,
-      sha,
-      state: "success",
-      fileComplexities,
-      riskPoint,
-      leadTime,
-    }),
-
-    client.createCommitComment({
-      owner,
-      repo,
-      sha,
-      body: `
-## Complexity Report 📊
-
-${markdownStr}
-`,
-    }),
-    createCommitStatus({
-      state: "success",
-      description: `${riskPoint} / 100`,
-      context: "Risk Points",
-    }),
-    createCommitStatus({
-      state: "success",
-      description: `Open: ${leadTime.open}d, Work: ${leadTime.work}d, Review, ${leadTime.review}d`,
-      context: "Lead Time",
-    }),
-  ]);
-
-  return formatJSONResponse(200, { message: "ok" });
-};
-
-export const main = middify({ handler });
-async function analyze(owner: any, repo: any, jwt: any, branch: any, sha: any) {
   // AWS Lambda only support /tmp directory.
   // const workingDir = "/tmp/" + new Date().getTime() + "/" + owner + "/" + repo;
   const workingDir = `/tmp/${new Date().getTime()}/${owner}/${repo}`;
@@ -153,12 +109,50 @@ async function analyze(owner: any, repo: any, jwt: any, branch: any, sha: any) {
 
   const markdownStr = tablemark(formattedFileComplexities.splice(0, 20)); // TOP 20
 
+  const service = new PullRequestService(jwt);
+  const prs = await service.getPullRequestsBySha({
+    repositoryNameWithOwner: `${owner}/${repo}`,
+    sha,
+  });
+
   // TODO: calculate
   const riskPoint = faker.datatype.number(100);
+
   const leadTime = {
-    open: faker.datatype.number(5),
-    work: faker.datatype.number(5),
-    review: faker.datatype.number(5),
+    open: prs[0].firstCommitToPRCreated / (60 * 60 * 24),
+    work: prs[0].prCreatedAtToLastCommit / (60 * 60 * 24),
+    review: 0,
   };
-  return { fileComplexities, riskPoint, leadTime, markdownStr };
-}
+
+  await Promise.all([
+    dao.save({
+      repositoryNameWithOwner,
+      sha,
+      state: "success",
+      fileComplexities,
+      riskPoint,
+      leadTime,
+    }),
+
+    client.createCommitComment({
+      owner,
+      repo,
+      sha,
+      body: `## Complexity Report 📊\n${markdownStr}`,
+    }),
+    createCommitStatus({
+      state: "success",
+      description: `${riskPoint} / 100`,
+      context: "Risk Points",
+    }),
+    createCommitStatus({
+      state: "success",
+      description: `Open: ${leadTime.open}d, Work: ${leadTime.work}d, Review, ${leadTime.review}d`,
+      context: "Lead Time",
+    }),
+  ]);
+
+  return formatJSONResponse(200, { message: "ok" });
+};
+
+export const main = middify({ handler });

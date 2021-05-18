@@ -49,7 +49,7 @@ describe("dynamodb data mapper lesson", () => {
         repositoryNameWithOwner: "daisuke-awaji/sample_app",
         sha: faker.datatype.uuid(),
         state: faker.random.arrayElement(["success", "error"]),
-        fileCompexities: [
+        fileComplexities: [
           { file: "src/index.ts", complexity: faker.datatype.number(100) },
           { file: "src/db.ts", complexity: faker.datatype.number(100) },
         ],

@@ -41,6 +41,27 @@ type DeleteCommitCommentParam = {
   commentId: number;
 };
 
+type User = {
+  login: string;
+  id: number;
+  node_id: string;
+  avatar_url: string;
+  gravatar_id: string;
+  url: string;
+  html_url: string;
+  followers_url: string;
+  following_url: string;
+  gists_url: string;
+  starred_url: string;
+  subscriptions_url: string;
+  organizations_url: string;
+  repos_url: string;
+  events_url: string;
+  received_events_url: string;
+  type: string;
+  site_admin: false;
+};
+
 type CommitComment = {
   html_url: string;
   url: string;
@@ -51,29 +72,46 @@ type CommitComment = {
   position: number;
   line: number;
   commit_id: string;
-  user: {
-    login: string;
-    id: number;
-    node_id: string;
-    avatar_url: string;
-    gravatar_id: string;
-    url: string;
-    html_url: string;
-    followers_url: string;
-    following_url: string;
-    gists_url: string;
-    starred_url: string;
-    subscriptions_url: string;
-    organizations_url: string;
-    repos_url: string;
-    events_url: string;
-    received_events_url: string;
-    type: string;
-    site_admin: false;
-  };
+  user: User;
   created_at: string;
   updated_at: string;
   author_association: string;
+};
+
+type CreateIssueCommentParam = {
+  owner: string;
+  repo: string;
+  issueNumber: number;
+  body: string;
+};
+
+type ListIssueCommentParam = {
+  owner: string;
+  repo: string;
+  issueNumber: number;
+  since?: string;
+  perPage?: number;
+  page?: number;
+};
+
+type IssueComment = {
+  url: string;
+  html_url: string;
+  issue_url: string;
+  id: number;
+  node_id: string;
+  user: User;
+  created_at: string;
+  updated_at: string;
+  author_association: string;
+  body: string;
+  performed_via_github_app: any;
+};
+
+type DeleteIssueCommentParam = {
+  owner: string;
+  repo: string;
+  commentId: number;
 };
 
 export class GitHubRestClient {
@@ -119,6 +157,8 @@ export class GitHubRestClient {
       `/repos/${owner}/${repo}/commits/${sha}/comments`
     );
 
+    // TODO: pagination
+
     return result.data;
   }
 
@@ -127,6 +167,41 @@ export class GitHubRestClient {
 
     await this.client.delete(`/repos/${owner}/${repo}/comments/${commentId}`);
 
+    return;
+  }
+
+  async createIssueComment(param: CreateIssueCommentParam) {
+    const { owner, repo, issueNumber, body } = param;
+    await this.client.post(
+      `/repos/${owner}/${repo}/issues/${issueNumber}/comments`,
+      {
+        body,
+      }
+    );
+
+    return;
+  }
+
+  async listIssueComment(
+    param: ListIssueCommentParam
+  ): Promise<IssueComment[]> {
+    const { owner, repo, issueNumber } = param;
+
+    const result = await this.client.get(
+      `/repos/${owner}/${repo}/issues/${issueNumber}/comments`
+    );
+
+    // TODO: pagination
+
+    return result.data;
+  }
+
+  async deleteIssueComment(param: DeleteIssueCommentParam) {
+    const { owner, repo, commentId } = param;
+
+    await this.client.delete(
+      `/repos/${owner}/${repo}/issues/comments/${commentId}`
+    );
     return;
   }
 }
