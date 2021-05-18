@@ -68,7 +68,7 @@ describe("", () => {
     done();
   });
 
-  test.only("create commmit comment", async (done) => {
+  test("create commmit comment", async (done) => {
     const jwt = await createJWT("16959777");
     const client = new GitHubRestClient(jwt);
     await client.createCommitComment({
@@ -76,6 +76,40 @@ describe("", () => {
       repo: "gitscope-webhook-test",
       sha: "12b6d2134b5a6586892a48c09d6becbcea9573c1",
       body: `|File ✏️|Complexity
+|--|--|
+|/src/index.js|✅ 4|
+|/src/app.js|✅ 2|
+|/src/node.js|✅ 1|
+|/src/config.js|🚨 17|
+|/src/service/github.js|✅ 4|
+      `,
+    });
+    done();
+  });
+
+  test.only("create pull-request issue comment", async (done) => {
+    const jwt = await createJWT("16959777");
+    const client = new GitHubRestClient(jwt);
+
+    const issueComments = await client.listIssueComment({
+      owner: "daisuke-awaji",
+      repo: "gitscope-backend",
+      issueNumber: 2,
+    });
+    console.log(issueComments);
+    for (const issueComment of issueComments) {
+      await client.deleteIssueComment({
+        owner: "daisuke-awaji",
+        repo: "gitscope-backend",
+        commentId: issueComment.id,
+      });
+    }
+
+    await client.createIssueComment({
+      owner: "daisuke-awaji",
+      repo: "gitscope-backend",
+      issueNumber: 2,
+      body: `|File|Complexity
 |--|--|
 |/src/index.js|✅ 4|
 |/src/app.js|✅ 2|
