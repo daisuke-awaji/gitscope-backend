@@ -147,7 +147,10 @@ export const handler: Handler = async (event: any): Promise<any> => {
       repositoryNameWithOwner,
       sha,
       state: "success",
-      fileComplexities,
+      fileComplexities: fileComplexities.map((i) => ({
+        file: i.file.replace(workingDir, ""),
+        complexity: i.complexity,
+      })),
       riskPoint,
       leadTime,
     }),
