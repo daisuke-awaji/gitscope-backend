@@ -9,6 +9,7 @@ import ComplexityCalculator from "../services/ComplexityCalculator/ComplexityCal
 import tablemark from "tablemark";
 import fs from "fs/promises";
 import { CommitAnalysisDao } from "../dao/CommitAnalysisDao";
+import PullRequestService from "../services/PullRequestService";
 
 export const handler: Handler = async (event: any): Promise<any> => {
   const xGithubEvent =
@@ -108,12 +109,19 @@ export const handler: Handler = async (event: any): Promise<any> => {
 
   const markdownStr = tablemark(formattedFileComplexities.splice(0, 20)); // TOP 20
 
+  const service = new PullRequestService(jwt);
+  const prs = await service.getPullRequestsBySha({
+    repositoryNameWithOwner: `${owner}/${repo}`,
+    sha,
+  });
+
   // TODO: calculate
   const riskPoint = faker.datatype.number(100);
+
   const leadTime = {
-    open: faker.datatype.number(5),
-    work: faker.datatype.number(5),
-    review: faker.datatype.number(5),
+    open: prs[0].firstCommitToPRCreated / (60 * 60 * 24),
+    work: prs[0].prCreatedAtToLastCommit / (60 * 60 * 24),
+    review: 0,
   };
 
   await Promise.all([

@@ -239,7 +239,7 @@ export class GitHubGraphQLClient {
     );
   }
 
-  private async fetchAllPullRequestsByQuery(
+  public async fetchAllPullRequestsByQuery(
     searchQuery: string
   ): Promise<PullRequest[]> {
     const query = gql`

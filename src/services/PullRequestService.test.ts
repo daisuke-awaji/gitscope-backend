@@ -94,13 +94,32 @@ test("public repository", async (done) => {
   done();
 });
 
-test.only("get pr", async (done) => {
+test("get pr", async (done) => {
   const token = process.env.TEST_TOKEN;
   const service = new PullRequestService(token);
   const pr = await service.getPullRequest({
     repositoryNameWithOwner: "daisuke-awaji/gitscope-backend",
-    pullRequestId: 2,
+    pullRequestId: 4,
   });
   console.log(pr);
+  done();
+});
+
+test.only("get pr by sha", async (done) => {
+  const token = process.env.TEST_TOKEN;
+  const service = new PullRequestService(token);
+  const prs = await service.getPullRequestsBySha({
+    repositoryNameWithOwner: "daisuke-awaji/gitscope-backend",
+    sha: "22558cdc6d6b7050e609ec3347ac43b2a8680f9d",
+  });
+  console.log(prs);
+
+  const leadTime = {
+    open: prs[0].firstCommitToPRCreated / (60 * 60 * 24),
+    work: prs[0].prCreatedAtToLastCommit / (60 * 60 * 24),
+    review: 0,
+  };
+
+  console.log(leadTime);
   done();
 });

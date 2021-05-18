@@ -22,6 +22,11 @@ type GetPullRequestProps = {
   pullRequestId: number;
 };
 
+type GetPullRequestByShaProps = {
+  repositoryNameWithOwner: string;
+  sha: string;
+};
+
 class PullRequestService {
   constructor(public token: string) {}
 
@@ -57,6 +62,24 @@ class PullRequestService {
       });
 
       return pr;
+    } catch (e) {
+      console.log(e);
+      throw new createHttpError.Forbidden(e);
+    }
+  }
+
+  async getPullRequestsBySha(
+    props: GetPullRequestByShaProps
+  ): Promise<PullRequest[]> {
+    const { repositoryNameWithOwner, sha } = props;
+    try {
+      const gqlClient = createGraphQLClient(this.token);
+      const client = new GitHubGraphQLClient(gqlClient);
+      const result = await client.fetchAllPullRequestsByQuery(
+        `is:pr repo:${repositoryNameWithOwner} ${sha}`
+      );
+
+      return result;
     } catch (e) {
       console.log(e);
       throw new createHttpError.Forbidden(e);
