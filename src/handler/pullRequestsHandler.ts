@@ -25,7 +25,7 @@ const pullRequestsHandler = async (
   };
 
   const prs = await service.getMergedPullRequests(param);
-  return formatJSONResponse(200, { prs });
+  return formatJSONResponse(200, { prs: prs.sort((a,b)=> new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()) });
 };
 
 export const main = middify({ handler: pullRequestsHandler });
