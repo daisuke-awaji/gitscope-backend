@@ -87,7 +87,7 @@ describe("", () => {
     done();
   });
 
-  test.only("create pull-request issue comment", async (done) => {
+  test("create pull-request issue comment", async (done) => {
     const jwt = await createJWT("16959777");
     const client = new GitHubRestClient(jwt);
 
@@ -118,6 +118,39 @@ describe("", () => {
 |/src/service/github.js|✅ 4|
       `,
     });
+    done();
+  });
+
+  test.only("create new branch and new file", async (done) => {
+    const token = process.env.TEST_TOKEN;
+    const client = new GitHubRestClient(token);
+
+    const commit = await client.GetBranchHead({
+      owner: "daisuke-awaji",
+      repo: "gitscope-backend",
+      branch: "master",
+    });
+    console.log(commit.object.sha);
+
+    const result = await client
+      .CreateBranch({
+        owner: "daisuke-awaji",
+        repo: "gitscope-backend",
+        branch: "newb",
+        sha: commit.object.sha,
+      })
+      .catch((e) => console.log(e));
+    console.log(result);
+    // await client
+    //   .CreateFileContents({
+    //     owner: "daisuke-awaji",
+    //     repo: "gitscope-backend",
+    //     path: "a.txt",
+    //     message: "hey",
+    //     content: "yeeeeeeeeeeah",
+    //     branch: "nb",
+    //   })
+    //   .catch((e) => console.log(e));
     done();
   });
 });

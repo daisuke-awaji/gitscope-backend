@@ -204,4 +204,62 @@ export class GitHubRestClient {
     );
     return;
   }
+
+  async CreateFileContents(param: CreateFileContentsParam) {
+    const { owner, repo, path, message, content, branch } = param;
+
+    const res = await this.client.put(
+      `/repos/${owner}/${repo}/contents/${path}`,
+      {
+        message,
+        content: Buffer.from(content).toString("base64"),
+        branch,
+      }
+    );
+
+    return res;
+  }
+
+  async GetBranchHead(param: GetBranchHeadParam) {
+    const { owner, repo, branch } = param;
+
+    const result = await this.client.get(
+      `/repos/${owner}/${repo}/git/refs/heads/${branch}`
+    );
+
+    return result.data;
+  }
+
+  async CreateBranch(param: CreateBranchParam) {
+    const { owner, repo, branch, sha } = param;
+
+    const result = await this.client.post(`/repos/${owner}/${repo}/git/refs`, {
+      ref: `refs/heads/${branch}`,
+      sha: sha,
+    });
+
+    return result.data;
+  }
 }
+
+type CreateFileContentsParam = {
+  owner: string;
+  repo: string;
+  path: string; // file path
+  message: string; // commit message
+  content: string; // Base64 encoded
+  branch?: string;
+};
+
+type GetBranchHeadParam = {
+  owner: string;
+  repo: string;
+  branch: string;
+};
+
+type CreateBranchParam = {
+  owner: string;
+  repo: string;
+  branch: string;
+  sha: string;
+};
