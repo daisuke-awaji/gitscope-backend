@@ -10,6 +10,7 @@ import {
   createGraphQLClient,
   GitHubGraphQLClient,
 } from "../services/GitHubGrqphQLClient";
+import { GitHubRestClient } from "../services/GitHubRestClient";
 
 const setUpRepositoryHandler: ValidatedEventAPIGatewayProxyEvent<
   typeof inputSchema
@@ -32,6 +33,40 @@ const setUpRepositoryHandler: ValidatedEventAPIGatewayProxyEvent<
     enabled: body.enabled,
   } as any);
 
+  if (body.enabled && body.config) {
+    console.log(body.config);
+    const restClient = new GitHubRestClient(token);
+
+    const commit = await restClient
+      .GetBranchHead({
+        owner: repositoryOwner,
+        repo: repositoryName,
+        branch: "master",
+      })
+      .catch((e) => console.log(e));
+
+    const result = await restClient
+      .CreateBranch({
+        owner: repositoryOwner,
+        repo: repositoryName,
+        branch: "gitscope-setup",
+        sha: commit.object.sha,
+      })
+      .catch((e) => console.log(e));
+    console.log(result);
+
+    await restClient
+      .CreateFileContents({
+        owner: repositoryOwner,
+        repo: repositoryName,
+        path: ".gitscope.config.json",
+        message: "gitconfig setup",
+        content: body.config as string,
+        branch: "gitscope-setup",
+      })
+      .catch((e) => console.log(e));
+  }
+
   return formatJSONResponse(200, { userRepositorySetting: saved });
 };
 
@@ -42,6 +77,7 @@ const inputSchema = {
       type: "object",
       properties: {
         enabled: { type: "boolean" },
+        config: { type: "string" },
       },
       required: ["enabled"],
     },
