@@ -40,6 +40,31 @@ export const handler: Handler = async (event: any): Promise<any> => {
 
   const dao = new CommitAnalysisDao();
 
+  // AWS Lambda only support /tmp directory.
+  // const workingDir = "/tmp/" + new Date().getTime() + "/" + owner + "/" + repo;
+  const workingDir = `/tmp/${new Date().getTime()}/${owner}/${repo}`;
+  const arranger = new GitHubCodeArranger();
+  await arranger.cloneWithCheckout({
+    login: owner,
+    token: jwt,
+    repositoryNameWithOwner: `${owner}/${repo}`,
+    workingDir,
+    branch,
+    sha,
+  });
+
+  // TODO: validation
+  const config = await fs
+    .readFile(workingDir + "/.gitscope.config.json", "utf-8")
+    .then((data) => JSON.parse(data))
+    .catch((e) => {
+      throw formatJSONResponse(400, {
+        message:
+          "The configuration file is invalid. To be sure the .gitscope.config.json at project root directory.",
+        error: e,
+      });
+    });
+
   const repositoryNameWithOwner = `${owner}/${repo}`;
   const createCommitStatus = ({ state, description, context }) => {
     return client.createCommitStatus({
@@ -71,31 +96,6 @@ export const handler: Handler = async (event: any): Promise<any> => {
       state: "pending",
     }),
   ]);
-
-  // AWS Lambda only support /tmp directory.
-  // const workingDir = "/tmp/" + new Date().getTime() + "/" + owner + "/" + repo;
-  const workingDir = `/tmp/${new Date().getTime()}/${owner}/${repo}`;
-  const arranger = new GitHubCodeArranger();
-  await arranger.cloneWithCheckout({
-    login: owner,
-    token: jwt,
-    repositoryNameWithOwner: `${owner}/${repo}`,
-    workingDir,
-    branch,
-    sha,
-  });
-
-  // TODO: validation
-  const config = await fs
-    .readFile(workingDir + "/.gitscope.config.json", "utf-8")
-    .then((data) => JSON.parse(data))
-    .catch((e) => {
-      throw formatJSONResponse(400, {
-        message:
-          "The configuration file is invalid. To be sure the .gitscope.config.json at project root directory.",
-        error: e,
-      });
-    });
 
   const calculator = new ComplexityCalculator();
   const fileComplexities = await calculator.getCollectedComplexityGlobFiles({
