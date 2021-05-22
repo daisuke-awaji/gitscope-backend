@@ -209,6 +209,16 @@ export class GitHubGraphQLClient {
               nodes {
                 commit {
                   authoredDate
+                  comments {
+                    totalCount
+                  }
+                }
+              }
+            }
+            reviews(first:100) {
+              nodes {
+                comments {
+                  totalCount
                 }
               }
             }
@@ -223,6 +233,14 @@ export class GitHubGraphQLClient {
     const data = await this.graphQLClient.request(query);
     const p = data.repository.pullRequest;
 
+    const numOfCommitComments = p.commits.nodes.reduce((prev, curr) => {
+      return prev + curr.commit.comments.totalCount;
+    }, 0);
+
+    const numOfReviewComments = p.reviews.nodes.reduce((prev, curr) => {
+      return prev + curr.comments.totalCount;
+    }, 0);
+
     return new PullRequest(
       p.number,
       p.title,
@@ -234,7 +252,7 @@ export class GitHubGraphQLClient {
       p.deletions,
       p.commits.nodes[0].commit.authoredDate,
       p.commits.nodes[p.commits.nodes.length - 1].commit.authoredDate,
-      p.comments.totalCount,
+      p.comments.totalCount + numOfCommitComments + numOfReviewComments,
       p.commits.nodes.length
     );
   }
@@ -263,6 +281,16 @@ export class GitHubGraphQLClient {
                   nodes {
                     commit {
                       authoredDate
+                      comments {
+                        totalCount
+                      }
+                    }
+                  }
+                }
+                reviews(first:100) {
+                  nodes {
+                    comments {
+                      totalCount
                     }
                   }
                 }
@@ -290,24 +318,31 @@ export class GitHubGraphQLClient {
 
     while (true) {
       const data = await this.graphQLClient.request(query, { after });
+
       prs = prs.concat(
-        data.search.nodes.map(
-          (p: PullRequestNode) =>
-            new PullRequest(
-              p.number,
-              p.title,
-              p.author.login,
-              p.url,
-              p.createdAt,
-              p.mergedAt,
-              p.additions,
-              p.deletions,
-              p.commits.nodes[0].commit.authoredDate,
-              p.commits.nodes[p.commits.nodes.length - 1].commit.authoredDate,
-              p.comments.totalCount,
-              p.commits.nodes.length
-            )
-        )
+        data.search.nodes.map((p: PullRequestNode) => {
+          const numOfCommitComments = p.commits.nodes.reduce((prev, curr) => {
+            return prev + curr.commit.comments.totalCount;
+          }, 0);
+          const numOfReviewComments = p.reviews.nodes.reduce((prev, curr) => {
+            return prev + curr.comments.totalCount;
+          }, 0);
+
+          return new PullRequest(
+            p.number,
+            p.title,
+            p.author.login,
+            p.url,
+            p.createdAt,
+            p.mergedAt,
+            p.additions,
+            p.deletions,
+            p.commits.nodes[0].commit.authoredDate,
+            p.commits.nodes[p.commits.nodes.length - 1].commit.authoredDate,
+            p.comments.totalCount + numOfCommitComments + numOfReviewComments,
+            p.commits.nodes.length
+          );
+        })
       );
 
       if (!data.search.pageInfo.hasNextPage) break;

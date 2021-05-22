@@ -1,4 +1,4 @@
-import { parseISO } from 'date-fns';
+import { parseISO } from "date-fns";
 
 type Secounds = number;
 export class PullRequest {
@@ -18,7 +18,7 @@ export class PullRequest {
     public authoredDate: string,
     public lastCommitDate: string,
     public totalComments: number,
-    public totalCommits: number,
+    public totalCommits: number
   ) {
     const getTime = (dateStr) => parseISO(dateStr).getTime();
     this.firstCommitToPRCreated =
@@ -44,10 +44,20 @@ export interface PullRequestNode {
   comments: {
     totalCount: number;
   };
+  reviews: {
+    nodes: {
+      comments: {
+        totalCount: number;
+      };
+    }[];
+  };
   commits: {
     nodes: {
       commit: {
         authoredDate: string;
+        comments: {
+          totalCount: number;
+        };
       };
     }[];
   };
