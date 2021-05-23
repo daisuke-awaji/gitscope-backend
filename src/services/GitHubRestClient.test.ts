@@ -132,7 +132,7 @@ describe("", () => {
     });
     console.log(commit.object.sha);
 
-    const result = await client
+    await client
       .CreateBranch({
         owner: "daisuke-awaji",
         repo: "gitscope-backend",
@@ -140,17 +140,17 @@ describe("", () => {
         sha: commit.object.sha,
       })
       .catch((e) => console.log(e));
-    console.log(result);
-    // await client
-    //   .CreateFileContents({
-    //     owner: "daisuke-awaji",
-    //     repo: "gitscope-backend",
-    //     path: "a.txt",
-    //     message: "hey",
-    //     content: "yeeeeeeeeeeah",
-    //     branch: "nb",
-    //   })
-    //   .catch((e) => console.log(e));
+
+    await client
+      .CreateFileContents({
+        owner: "daisuke-awaji",
+        repo: "gitscope-backend",
+        path: "a.txt",
+        message: "hey",
+        content: "yeeeeeeeeeeah",
+        branch: "nb",
+      })
+      .catch((e) => console.log(e));
     done();
   });
 });

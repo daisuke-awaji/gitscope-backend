@@ -7,20 +7,24 @@ import GitHubAuthService from "../services/GitHubAuthService";
 import { formatJSONResponse } from "../utils/apigateway";
 import { middify } from "../utils/middify";
 
-export const handler: Handler = async (event: any): Promise<any> => {
-  if (!event.queryStringParameters.code) {
-    throw formatJSONResponse(400, { message: "code is not set" });
+export const resignWithRefreshTokenHandler: Handler = async (
+  event: any
+): Promise<any> => {
+  if (!event.queryStringParameters.refresh_token) {
+    throw formatJSONResponse(400, { message: "refresh_token is not set" });
   }
 
-  const code = event.queryStringParameters.code;
+  const refresh_token = event.queryStringParameters.refresh_token;
 
   const authService = new GitHubAuthService();
-  const auth = await authService.getAccessToken(code as string).catch((e) => {
-    throw formatJSONResponse(401, {
-      message: "get access token error",
-      error: e,
+  const auth = await authService
+    .getAccessTokenUsingRefreshToken(refresh_token as string)
+    .catch((e) => {
+      throw formatJSONResponse(401, {
+        message: "get access token error",
+        error: e,
+      });
     });
-  });
 
   const gqlClient = createGraphQLClient(auth.access_token);
   const client = new GitHubGraphQLClient(gqlClient);
@@ -36,4 +40,4 @@ export const handler: Handler = async (event: any): Promise<any> => {
   });
 };
 
-export const main = middify({ handler });
+export const handler = middify({ handler: resignWithRefreshTokenHandler });

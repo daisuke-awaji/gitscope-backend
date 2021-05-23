@@ -142,6 +142,22 @@ functions:
               - X-Api-Key
               - X-Amz-Security-Token
               - X-Amz-User-Agent
+  resignWithRefreshToken:
+    handler: src/handler/resignWithRefreshToken.handler
+    events:
+      - http:
+          path: /auth/github/resignWithRefreshToken
+          method: get
+          cors:
+            origin: ${self:custom.environment.ORIGIN.${opt:stage}}
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent    
+
   repos:
     handler: src/handler/reposHandler.main
     events:
