@@ -8,23 +8,18 @@ export class UserRepositorySettingDao {
     this.mapper = mapper || client;
   }
 
-  async findByLogin(props: {
-    login: string;
-    enabled?: boolean;
-  }): Promise<UserRepositorySetting[]> {
-    const result: UserRepositorySetting[] = [];
+  async findByRepositoryWithOwner(props: {
+    repositoryNameWithOwner: string;
+  }): Promise<UserRepositorySetting> {
+    const one = await this.mapper
+      .get(Object.assign(new UserRepositorySetting(), props))
+      .catch((e) => {
+        console.log(e);
+        // TODO: Error handling for NotFound Exception
+        return null;
+      });
 
-    for await (const item of this.mapper.query(UserRepositorySetting, {
-      login: props.login,
-    })) {
-      result.push(item);
-    }
-
-    if (props.enabled !== undefined) {
-      return result.filter((item) => item.enabled === props.enabled);
-    }
-
-    return result;
+    return one;
   }
 
   async save(props: UserRepositorySetting): Promise<UserRepositorySetting> {

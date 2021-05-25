@@ -68,15 +68,11 @@ resources: # CloudFormation template syntax
       Properties:
         TableName: ${opt:stage}_UserRepositorySetting
         AttributeDefinitions:
-          - AttributeName: login
-            AttributeType: S
           - AttributeName: repositoryNameWithOwner
             AttributeType: S
         KeySchema:
-          - AttributeName: login
-            KeyType: HASH
           - AttributeName: repositoryNameWithOwner
-            KeyType: RANGE
+            KeyType: HASH
         ProvisionedThroughput:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1
