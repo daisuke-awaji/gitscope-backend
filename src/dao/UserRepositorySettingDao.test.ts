@@ -48,7 +48,6 @@ describe("dynamodb data mapper lesson", () => {
 
     await mapper.put(
       Object.assign(new UserRepositorySetting(), {
-        login: "daisuke-awaji",
         repositoryNameWithOwner: "intecrb/sample_app",
         enabled: false,
       })
@@ -82,73 +81,29 @@ describe("UserRepositorySettingDao", () => {
 
     const dao = new UserRepositorySettingDao(mapper);
     await dao.save({
-      login: "daisuke-awaji",
       repositoryNameWithOwner: "intecrb/sample_app",
       enabled: true,
     });
     await dao.save({
-      login: "daisuke-awaji",
       repositoryNameWithOwner: "facebook/react",
       enabled: true,
     });
     await dao.save({
-      login: "daisuke-awaji",
       repositoryNameWithOwner: "facebook/react-native",
       enabled: false,
     });
     await dao.save({
-      login: "g-awa",
       repositoryNameWithOwner: "facebook/react",
       enabled: true,
     });
 
-    const saved = await dao.findByLogin({ login: "daisuke-awaji" });
-    expect(saved).toMatchObject([
-      {
-        login: "daisuke-awaji",
-        repositoryNameWithOwner: "facebook/react",
-        enabled: true,
-      },
-      {
-        login: "daisuke-awaji",
-        repositoryNameWithOwner: "facebook/react-native",
-        enabled: false,
-      },
-      {
-        login: "daisuke-awaji",
-        repositoryNameWithOwner: "intecrb/sample_app",
-        enabled: true,
-      },
-    ]);
-
-    const filterByEnabled = await dao.findByLogin({
-      login: "daisuke-awaji",
+    const facebookReact = await dao.findByRepositoryWithOwner({
+      repositoryNameWithOwner: "facebook/react",
+    });
+    expect(facebookReact).toMatchObject({
+      repositoryNameWithOwner: "facebook/react",
       enabled: true,
     });
-    expect(filterByEnabled).toMatchObject([
-      {
-        login: "daisuke-awaji",
-        repositoryNameWithOwner: "facebook/react",
-        enabled: true,
-      },
-      {
-        login: "daisuke-awaji",
-        repositoryNameWithOwner: "intecrb/sample_app",
-        enabled: true,
-      },
-    ]);
-
-    const filterByDisabled = await dao.findByLogin({
-      login: "daisuke-awaji",
-      enabled: false,
-    });
-    expect(filterByDisabled).toMatchObject([
-      {
-        login: "daisuke-awaji",
-        repositoryNameWithOwner: "facebook/react-native",
-        enabled: false,
-      },
-    ]);
     done();
   });
 });

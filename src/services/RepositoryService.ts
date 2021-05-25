@@ -5,7 +5,6 @@ import {
 import { Repository } from "../model/Repository";
 import createHttpError from "http-errors";
 import { UserRepositorySettingDao } from "../dao/UserRepositorySettingDao";
-import { UserRepositorySetting } from "../model/UserRepositorySetting";
 
 interface RepositoryStatus extends Repository {
   followed: boolean;
@@ -20,44 +19,28 @@ class RepositoryService {
     const client = new GitHubGraphQLClient(gqlClient);
 
     try {
-      const user = await client.fetchLoginUser();
       const dao = new UserRepositorySettingDao();
-      const repoSettings: UserRepositorySetting[] | null = await dao
-        .findByLogin({ login: user.login })
-        .catch(() => {
-          return null;
-        });
-
-      if (followed) {
-        return repoSettings
-          .filter((item) => item.enabled)
-          .map((item) => {
-            return {
-              followed: item.enabled,
-              nameWithOwner: item.repositoryNameWithOwner,
-              url: `https://github.com/${item.repositoryNameWithOwner}`,
-            };
-          });
-      }
 
       const result = await client.fetchRepositoriesRelatedToMe();
+      const followedRepositories = await Promise.all(
+        result.map(async (repository) => {
+          const followedRepository = await dao.findByRepositoryWithOwner({
+            repositoryNameWithOwner: repository.nameWithOwner,
+          });
+          if (!followedRepository) {
+            return { followed: false, ...repository };
+          }
 
-      return result
-        .map((repo) => {
-          const one = repoSettings.find(
-            (i) => i.repositoryNameWithOwner === repo.nameWithOwner
-          );
-          if (one) {
-            return { followed: one.enabled, ...repo };
-          }
-          return { followed: false, ...repo };
+          return { followed: followedRepository.enabled, ...repository };
         })
-        .filter((item) => {
-          if (followed !== undefined) {
-            return item.followed === followed;
-          }
-          return true;
-        });
+      );
+
+      return followedRepositories.filter((item) => {
+        if (followed !== undefined) {
+          return item.followed === followed;
+        }
+        return true;
+      });
     } catch (e) {
       throw new createHttpError.Forbidden(e.toString());
     }
