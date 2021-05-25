@@ -43,7 +43,10 @@ export class CommitAnalysisDao {
       })) {
         result.push(commitAnalysis);
       }
-      return result;
+
+      return result.sort((a, b) => {
+        return b.createdAt.getTime() - a.createdAt.getTime();
+      });
     } catch (e) {
       if (e.code === "ResourceNotFoundException") {
         return [];

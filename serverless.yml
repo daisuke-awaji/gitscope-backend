@@ -93,6 +93,8 @@ resources: # CloudFormation template syntax
             AttributeType: S
           - AttributeName: sha
             AttributeType: S
+          - AttributeName: createdAt
+            AttributeType: N
         KeySchema:
           - AttributeName: repositoryNameWithOwner
             KeyType: HASH
@@ -101,6 +103,18 @@ resources: # CloudFormation template syntax
         ProvisionedThroughput:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1
+        GlobalSecondaryIndexes:
+          - IndexName: createdAtSortKey
+            KeySchema:
+              - AttributeName: repositoryNameWithOwner
+                KeyType: HASH
+              - AttributeName: createdAt
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+            ProvisionedThroughput:
+              ReadCapacityUnits: 1
+              WriteCapacityUnits: 1
 
 functions:
   main:
