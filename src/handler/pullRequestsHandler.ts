@@ -1,7 +1,7 @@
 import { APIGatewayProxyEvent } from "aws-lambda";
 import PullRequestService from "../services/PullRequestService";
 import { formatJSONResponse } from "../utils/apigateway";
-import { parseBearerToken } from "../utils/auth";
+import { parseBearerToken } from "../utils/auth";
 import { format, sub } from "date-fns";
 import { middify } from "../utils/middify";
 
@@ -25,7 +25,12 @@ const pullRequestsHandler = async (
   };
 
   const prs = await service.getMergedPullRequests(param);
-  return formatJSONResponse(200, { prs: prs.sort((a,b)=> new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()) });
+  return formatJSONResponse(200, {
+    prs: prs.sort(
+      (a, b) =>
+        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+    ),
+  });
 };
 
 export const main = middify({ handler: pullRequestsHandler });

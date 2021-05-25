@@ -5,7 +5,7 @@ import {
 import { middify } from "../utils/middify";
 import { UserRepositorySettingDao } from "../dao/UserRepositorySettingDao";
 import { parseBearerToken } from "../utils/auth";
-import { GitHubRestClient } from "../services/GitHubRestClient";
+import { GitHubRestClient } from "../api/GitHubRestClient";
 
 const setUpRepositoryHandler: ValidatedEventAPIGatewayProxyEvent<
   typeof inputSchema

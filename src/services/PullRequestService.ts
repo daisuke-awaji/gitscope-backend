@@ -1,7 +1,7 @@
 import {
   createGraphQLClient,
   GitHubGraphQLClient,
-} from "./GitHubGrqphQLClient";
+} from "../api/GitHubGrqphQLClient";
 import { add, format } from "date-fns";
 import { PullRequest } from "../model/PullRequest";
 import createHttpError from "http-errors";

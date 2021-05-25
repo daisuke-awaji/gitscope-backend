@@ -1,7 +1,7 @@
 import {
   createGraphQLClient,
   GitHubGraphQLClient,
-} from "./GitHubGrqphQLClient";
+} from "../api/GitHubGrqphQLClient";
 import { Repository } from "../model/Repository";
 import createHttpError from "http-errors";
 import { UserRepositorySettingDao } from "../dao/UserRepositorySettingDao";

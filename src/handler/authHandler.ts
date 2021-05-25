@@ -2,7 +2,7 @@ import { Handler } from "aws-lambda";
 import {
   createGraphQLClient,
   GitHubGraphQLClient,
-} from "../services/GitHubGrqphQLClient";
+} from "../api/GitHubGrqphQLClient";
 import GitHubAuthService from "../services/GitHubAuthService";
 import { formatJSONResponse } from "../utils/apigateway";
 import { middify } from "../utils/middify";

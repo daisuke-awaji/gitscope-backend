@@ -1,9 +1,9 @@
 import {
   createGraphQLClient,
   GitHubGraphQLClient,
-} from './GitHubGrqphQLClient';
-import { formatJSONResponse } from '../utils/apigateway';
-import { Issue } from '../model/Issue';
+} from "../api/GitHubGrqphQLClient";
+import { formatJSONResponse } from "../utils/apigateway";
+import { Issue } from "../model/Issue";
 
 type GetOpenIssuesProps = {
   repositoryNameWithOwner: string;
@@ -28,7 +28,7 @@ class IssueService {
       return result;
     } catch (e) {
       console.log(e);
-      throw formatJSONResponse(403, { message: 'unauthorized' });
+      throw formatJSONResponse(403, { message: "unauthorized" });
     }
   }
 }

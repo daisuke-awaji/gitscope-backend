@@ -1,6 +1,6 @@
 import { Handler } from "aws-lambda";
-import { createJWT } from "../services/createGitHubAppJWT";
-import { GitHubRestClient } from "../services/GitHubRestClient";
+import { createJWT } from "../api/createGitHubAppJWT";
+import { GitHubRestClient } from "../api/GitHubRestClient";
 import { formatJSONResponse } from "../utils/apigateway";
 import { middify } from "../utils/middify";
 import GitHubCodeArranger from "../services/ComplexityCalculator/GitHubCodeArranger";

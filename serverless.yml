@@ -255,6 +255,22 @@ functions:
                 repositoryOwner: true
                 repositoryName: true
 
+  jobs:
+    handler: src/handler/jobs.main
+    events:
+      - http:
+          path: /repos/{repositoryOwner}/{repositoryName}/jobs
+          method: get
+          cors:
+            origin: ${self:custom.environment.ORIGIN.${opt:stage}}
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent                
+
   gitHubWebhookSubscribeHandler:
     handler: src/handler/gitHubWebhookSubscribeHandler.main
     events:
