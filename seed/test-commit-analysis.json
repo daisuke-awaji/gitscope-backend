@@ -1,0 +1,24 @@
+[
+  {
+    "repositoryNameWithOwner": "daisuke-awaji/gitscope-backend",
+    "sha": "f1d5247cad7a8cee02a4c397922a69047d0fec21",
+    "state": "pending",
+    "createdAt": "1621693262",
+    "fileComplexities": [
+      {
+        "complexity": 48,
+        "file": "/src/axios/pokemon/common.ts"
+      },
+      {
+        "complexity": 44,
+        "file": "/src/axios/pokemon/api.ts"
+      }
+    ],
+    "riskPoint": 83,
+    "leadTime": {
+      "open": "0.04",
+      "work": "0",
+      "review": "0"
+    }
+  }
+]

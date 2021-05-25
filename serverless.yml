@@ -23,6 +23,13 @@ custom:
       convertEmptyValues: true
     # Uncomment only if you already have a DynamoDB running locally
     # noStart: true
+    seed:
+      test:
+        sources:
+          - table: ${opt:stage}_UserRepositorySetting
+            sources: [./seed/test-user-repository-settins.json]
+          - table: ${opt:stage}_CommitAnalysis
+            sources: [./seed/test-commit-analysis.json]            
 
 provider:
   name: aws
@@ -77,33 +84,6 @@ resources: # CloudFormation template syntax
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1
 
-    # CommitAnalysis:
-    #   Type: AWS::DynamoDB::Table
-    #   Properties:
-    #     TableName: ${opt:stage}_CommitAnalysis
-    #     AttributeDefinitions:
-    #       - AttributeName: sha
-    #         AttributeType: S
-    #       - AttributeName: repositoryNameWithOwner
-    #         AttributeType: S
-    #     KeySchema:
-    #       - AttributeName: sha
-    #         KeyType: HASH
-    #       - AttributeName: repositoryNameWithOwner
-    #         KeyType: RANGE
-    #     ProvisionedThroughput:
-    #       ReadCapacityUnits: 1
-    #       WriteCapacityUnits: 1
-    #     GlobalSecondaryIndexes:
-    #       - IndexName: repositoryNameWithOwnerIndex
-    #         KeySchema:
-    #           - AttributeName: repositoryNameWithOwner
-    #             KeyType: HASH
-    #         Projection:
-    #           ProjectionType: ALL
-    #         ProvisionedThroughput:
-    #           ReadCapacityUnits: 1
-    #           WriteCapacityUnits: 1
     CommitAnalysis:
       Type: AWS::DynamoDB::Table
       Properties:
