@@ -12,6 +12,22 @@
       {
         "complexity": 44,
         "file": "/src/axios/pokemon/api.ts"
+      },
+      {
+        "complexity": 48,
+        "file": "/src/axios/pokemon/common.ts"
+      },
+      {
+        "complexity": 44,
+        "file": "/src/axios/pokemon/api.ts"
+      },
+      {
+        "complexity": 48,
+        "file": "/src/axios/pokemon/common.ts"
+      },
+      {
+        "complexity": 44,
+        "file": "/src/axios/pokemon/api.ts"
       }
     ],
     "riskPoint": 83,
