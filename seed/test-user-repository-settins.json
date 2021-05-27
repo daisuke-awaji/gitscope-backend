@@ -1,0 +1,18 @@
+[
+  {
+    "repositoryNameWithOwner": "cloudformation-perfect-guide/docs",
+    "enabled": true
+  },
+  {
+    "repositoryNameWithOwner": "daisuke-awaji/gitscope-backend",
+    "enabled": true
+  },
+  {
+    "repositoryNameWithOwner": "daisuke-awaji/gitscope-frontend",
+    "enabled": true
+  },
+  {
+    "repositoryNameWithOwner": "daisuke-awaji/gitscope-webhook-test",
+    "enabled": true
+  }
+]

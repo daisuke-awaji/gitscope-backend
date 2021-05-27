@@ -1,4 +1,4 @@
-import { createJWT } from "./createGitHubAppJWT";
+import { createJWT } from "../api/createGitHubAppJWT";
 import { GitHubRestClient } from "./GitHubRestClient";
 const sleep = (msec) => new Promise((resolve) => setTimeout(resolve, msec));
 

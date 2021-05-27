@@ -1,7 +1,7 @@
 import {
   createGraphQLClient,
   GitHubGraphQLClient,
-} from "./GitHubGrqphQLClient";
+} from "../api/GitHubGrqphQLClient";
 import { Repository } from "../model/Repository";
 import createHttpError from "http-errors";
 import { UserRepositorySettingDao } from "../dao/UserRepositorySettingDao";
@@ -35,12 +35,20 @@ class RepositoryService {
         })
       );
 
-      return followedRepositories.filter((item) => {
-        if (followed !== undefined) {
-          return item.followed === followed;
-        }
-        return true;
-      });
+      return followedRepositories
+        .filter(function (x, i, self) {
+          return (
+            self.findIndex(function (y) {
+              return x.nameWithOwner === y.nameWithOwner;
+            }) === i
+          );
+        })
+        .filter((item) => {
+          if (followed !== undefined) {
+            return item.followed === followed;
+          }
+          return true;
+        });
     } catch (e) {
       throw new createHttpError.Forbidden(e.toString());
     }
