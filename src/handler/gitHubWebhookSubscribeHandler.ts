@@ -129,7 +129,7 @@ export const handler: Handler = async (event: any): Promise<any> => {
 
   const service = new PullRequestService(jwt);
   const prs = await service.getPullRequestsBySha({
-    repositoryNameWithOwner: `${owner}/${repo}`,
+    repositoryNameWithOwner,
     sha,
   });
 
