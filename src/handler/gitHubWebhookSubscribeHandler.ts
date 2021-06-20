@@ -52,20 +52,6 @@ export const handler: Handler = async (event: any): Promise<any> => {
     branch,
     sha,
   });
-
-  // TODO: validation
-  const config = await fs
-    .readFile(workingDir + "/.gitscope.config.json", "utf-8")
-    .then((data) => JSON.parse(data))
-    .catch((e) => {
-      throw formatJSONResponse(400, {
-        message:
-          "The configuration file is invalid. To be sure the .gitscope.config.json at project root directory.",
-        error: e,
-      });
-    });
-
-  const repositoryNameWithOwner = `${owner}/${repo}`;
   const createCommitStatus = ({ state, description, context }) => {
     return client.createCommitStatus({
       owner,
@@ -77,6 +63,30 @@ export const handler: Handler = async (event: any): Promise<any> => {
       context,
     });
   };
+
+  const repositoryNameWithOwner = `${owner}/${repo}`;
+
+  const config = await fs
+    .readFile(workingDir + "/.gitscope.config.json", "utf-8")
+    .then((data) => JSON.parse(data))
+    .catch((e) => {
+      createCommitStatus({
+        state: "error",
+        description:
+          "The configuration file is invalid. To be sure the .gitscope.config.json at project root directory.",
+        context: "Config File Error",
+      });
+      dao.save({
+        repositoryNameWithOwner,
+        sha,
+        state: "error",
+      });
+      throw formatJSONResponse(400, {
+        message:
+          "The configuration file is invalid. To be sure the .gitscope.config.json at project root directory.",
+        error: e,
+      });
+    });
 
   await Promise.all([
     createCommitStatus({
@@ -119,7 +129,7 @@ export const handler: Handler = async (event: any): Promise<any> => {
 
   const service = new PullRequestService(jwt);
   const prs = await service.getPullRequestsBySha({
-    repositoryNameWithOwner: `${owner}/${repo}`,
+    repositoryNameWithOwner,
     sha,
   });
 

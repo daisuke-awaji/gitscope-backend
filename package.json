@@ -37,7 +37,8 @@
     "serverless-dynamodb-local": "^0.2.39",
     "simple-git": "^2.39.0",
     "tablemark": "^2.0.0",
-    "tsmetrics-core": "^1.2.2"
+    "tsmetrics-core": "^1.2.2",
+    "typescript": "^4.3.4"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.76",
@@ -56,8 +57,7 @@
     "ts-jest": "^26.5.5",
     "ts-node": "^8.9.1",
     "tslint": "^6.1.2",
-    "tslint-config-airbnb": "^5.11.2",
-    "typescript": "^3.8.3"
+    "tslint-config-airbnb": "^5.11.2"
   },
   "repository": {
     "type": "git",
