@@ -64,6 +64,8 @@ export const handler: Handler = async (event: any): Promise<any> => {
     });
   };
 
+  const repositoryNameWithOwner = `${owner}/${repo}`;
+
   const config = await fs
     .readFile(workingDir + "/.gitscope.config.json", "utf-8")
     .then((data) => JSON.parse(data))
@@ -85,8 +87,6 @@ export const handler: Handler = async (event: any): Promise<any> => {
         error: e,
       });
     });
-
-  const repositoryNameWithOwner = `${owner}/${repo}`;
 
   await Promise.all([
     createCommitStatus({
