@@ -58,6 +58,12 @@ export const handler: Handler = async (event: any): Promise<any> => {
     .readFile(workingDir + "/.gitscope.config.json", "utf-8")
     .then((data) => JSON.parse(data))
     .catch((e) => {
+      createCommitStatus({
+        state: "error",
+        description:
+          "The configuration file is invalid. To be sure the .gitscope.config.json at project root directory.",
+        context: "Config File Error",
+      });
       throw formatJSONResponse(400, {
         message:
           "The configuration file is invalid. To be sure the .gitscope.config.json at project root directory.",
